@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>CityVerse – Smart City Digital Twin Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        window.onerror = function(m, u, l) {
+            var f = document.getElementById("fatal");
+            if (f) {
+                f.style.display = "block";
+                f.textContent = "CityVerse error: " + m + " (" + (u || "").split("/").pop() + ":" + l + "). If files failed to load, extract the zip fully and open index.html from the extracted folder, or use CityVerse-standalone.html."
+            }
+        }
+    </script>
+</head>
+
+<body><noscript><p style="padding:20px;color:#fff">CityVerse needs JavaScript enabled.</p></noscript>
+    <div id="fatal" style="display:none;position:fixed;z-index:99;inset:auto 10px 10px 10px;background:#7a1330;color:#fff;padding:10px;border-radius:10px;font:13px system-ui"></div>
+    <header id="top">
+        <button class="ib mob" id="bNav" aria-label="Open modules">☰</button>
+        <div class="logo"><svg width="26" height="26" viewBox="0 0 32 32"><rect x="3" y="14" width="7" height="14" fill="#27d3ff"/><rect x="12" y="6" width="8" height="22" fill="#3b82f6"/><rect x="22" y="11" width="7" height="17" fill="#27d3ff" opacity=".7"/></svg><b>City<span>Verse</span></b></div>
+        <div class="clock" id="clock">Day 1 · 08:00</div>
+        <button class="btn" id="bPlay">▶ Start</button><button class="btn" id="bReset" title="Reset simulation">↺</button>
+        <select id="speed" title="Simulation speed"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select>
+        <span class="sp"></span><span class="note">Local simulation · not connected to real infrastructure</span>
+        <button class="ib" id="bPanel" aria-label="Toggle panel">▤</button></header>
+    <div id="app">
+        <nav id="nav"></nav>
+        <main id="stage"><canvas id="map"></canvas>
+            <div id="kpis"></div>
+            <div id="hint" hidden></div>
+            <div id="tip" hidden></div>
+            <button class="ib mob" id="ctlTog" aria-label="Map controls">🧭</button>
+            <div id="mapctl"><button class="ib" id="zi" title="Zoom in">＋</button><button class="ib" id="zo" title="Zoom out">－</button><button class="ib" id="zr" title="Reset view">⌖</button><button class="ib" id="zf" title="Fullscreen">⛶</button>
+                <button class="ib on" data-l="city" title="City view">🏙️</button><button class="ib" data-l="traffic" title="Traffic layer">🚦</button><button class="ib" data-l="pollution" title="Pollution heatmap">🌫️</button><button class="ib" data-l="power"
+                    title="Power grid layer">⚡</button><button class="ib" data-l="water" title="Water layer">💧</button></div>
+            <div id="insp" hidden></div>
+        </main>
+        <aside id="panel"><button class="ib mob" id="pClose" aria-label="Close panel">×</button>
+            <div id="panes"></div>
+        </aside>
+    </div>
+    <div id="scrim"></div>
+    <div id="toast"></div>
+    <script src="js/storage.js"></script>
+    <script src="js/city-map.js"></script>
+    <script src="js/traffic.js"></script>
+    <script src="js/energy.js"></script>
+    <script src="js/water.js"></script>
+    <script src="js/environment.js"></script>
+    <script src="js/emergency.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

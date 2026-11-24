@@ -1,0 +1,2855 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>CityVerse – Smart City Digital Twin Simulator</title>
+    <style>
+         :root {
+            --bg: #070b14;
+            --glass: rgba(12, 22, 42, .78);
+            --line: rgba(80, 170, 255, .22);
+            --tx: #dbe8ff;
+            --mut: #8196b8;
+            --ac: #27d3ff;
+            --ok: #2ee59d;
+            --warn: #ffb83d;
+            --bad: #ff4d6d;
+            --ground: #0c1526;
+            --road: #1a2438
+        }
+        
+        [data-theme=ocean] {
+            --bg: #06141f;
+            --glass: rgba(10, 38, 56, .78);
+            --line: rgba(60, 220, 200, .25);
+            --tx: #d8f5f2;
+            --mut: #7fb3b3;
+            --ac: #2de2c4;
+            --ground: #0a2230;
+            --road: #16384a
+        }
+        
+        [data-theme=light] {
+            --bg: #eaf0f8;
+            --glass: rgba(255, 255, 255, .86);
+            --line: rgba(30, 80, 160, .22);
+            --tx: #14213d;
+            --mut: #5a6b88;
+            --ac: #0b7bd6;
+            --ground: #dfe8f3;
+            --road: #b9c6d8
+        }
+        
+        * {
+            box-sizing: border-box
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            color: var(--tx);
+            font: 14px/1.45 system-ui, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden
+        }
+        
+        #top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--glass);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line);
+            z-index: 30
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 18px
+        }
+        
+        .logo span {
+            color: var(--ac)
+        }
+        
+        .clock {
+            font-variant-numeric: tabular-nums;
+            color: var(--ac);
+            padding: 4px 10px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            white-space: nowrap
+        }
+        
+        .sp {
+            flex: 1
+        }
+        
+        .note {
+            color: var(--mut);
+            font-size: 11px
+        }
+        
+        .btn,
+        .ib,
+        select {
+            background: rgba(60, 130, 220, .14);
+            color: var(--tx);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 7px 12px;
+            font: inherit;
+            cursor: pointer
+        }
+        
+        .btn:hover,
+        .ib:hover,
+        select:hover {
+            border-color: var(--ac)
+        }
+        
+        .btn:focus-visible,
+        .ib:focus-visible,
+        select:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--ac)
+        }
+        
+        .btn.on,
+        .ib.on,
+        .seg .on {
+            background: var(--ac);
+            color: #04121f;
+            font-weight: 600
+        }
+        
+        .mob {
+            display: none
+        }
+        
+        #app {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            position: relative
+        }
+        
+        #nav {
+            width: 150px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: var(--glass);
+            border-right: 1px solid var(--line);
+            overflow: auto;
+            z-index: 20
+        }
+        
+        #nav button {
+            background: none;
+            border: 1px solid transparent;
+            color: var(--tx);
+            text-align: left;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font: inherit;
+            cursor: pointer
+        }
+        
+        #nav button:hover {
+            background: rgba(60, 130, 220, .12)
+        }
+        
+        #nav button.on {
+            border-color: var(--ac);
+            background: rgba(39, 211, 255, .12);
+            color: var(--ac)
+        }
+        
+        #stage {
+            flex: 1;
+            position: relative;
+            min-width: 0;
+            overflow: hidden
+        }
+        
+        #map {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: grab
+        }
+        
+        #kpis {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            pointer-events: none
+        }
+        
+        .kpi {
+            pointer-events: auto;
+            flex: 1;
+            min-width: 104px;
+            text-align: left;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 6px 10px;
+            color: var(--tx);
+            font: inherit;
+            cursor: pointer
+        }
+        
+        .kpi small {
+            display: block
+        }
+        
+        .kpi b {
+            font-size: 16px
+        }
+        
+        .kpi.ok b,
+        .ok {
+            color: var(--ok)
+        }
+        
+        .kpi.warn b,
+        .warn {
+            color: var(--warn)
+        }
+        
+        .kpi.bad b,
+        .bad {
+            color: var(--bad)
+        }
+        
+        #mapctl {
+            position: absolute;
+            right: 10px;
+            bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+        
+        #mapctl .ib {
+            padding: 8px 11px;
+            background: var(--glass)
+        }
+        
+        #hint {
+            position: absolute;
+            top: 76px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ac);
+            color: #04121f;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 5;
+            white-space: nowrap
+        }
+        
+        #hint button {
+            margin-left: 8px;
+            border: 0;
+            border-radius: 10px;
+            padding: 2px 8px;
+            cursor: pointer
+        }
+        
+        #tip {
+            position: absolute;
+            pointer-events: none;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 5
+        }
+        
+        #insp {
+            position: absolute;
+            left: 10px;
+            bottom: 12px;
+            width: 290px;
+            max-height: 46%;
+            overflow: auto;
+            background: var(--glass);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px
+        }
+        
+        #insp .seg {
+            margin-top: 8px
+        }
+        
+        .kv {
+            margin: 6px 0;
+            color: var(--mut);
+            font-size: 13px
+        }
+        
+        #panel {
+            width: 390px;
+            background: var(--glass);
+            backdrop-filter: blur(14px);
+            border-left: 1px solid var(--line);
+            transition: width .25s, margin .25s;
+            z-index: 20;
+            overflow: hidden
+        }
+        
+        #panes {
+            width: 390px;
+            height: 100%;
+            overflow: auto;
+            padding: 12px
+        }
+        
+        body.pcol #panel {
+            width: 0;
+            border: 0
+        }
+        
+        .pane {
+            display: none
+        }
+        
+        .pane.active {
+            display: block
+        }
+        
+        h3 {
+            margin: 2px 0 10px;
+            font-size: 17px
+        }
+        
+        .card {
+            background: rgba(70, 130, 210, .08);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px
+        }
+        
+        .g2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+        
+        .g2 .card {
+            margin: 0
+        }
+        
+        .big {
+            font-size: 21px;
+            font-weight: 700;
+            display: block
+        }
+        
+        small,
+        .empty {
+            color: var(--mut)
+        }
+        
+        .empty {
+            padding: 14px;
+            text-align: center;
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            margin-bottom: 10px
+        }
+        
+        .bar {
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(120, 160, 220, .2);
+            overflow: hidden
+        }
+        
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--ac);
+            border-radius: 5px;
+            transition: width .3s
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 96px 1fr 64px;
+            gap: 8px;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 12px
+        }
+        
+        .row em {
+            font-style: normal;
+            text-align: right
+        }
+        
+        .row2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0
+        }
+        
+        .seg {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 6px 0
+        }
+        
+        .seg button {
+            background: rgba(60, 130, 220, .14);
+            color: var(--tx);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 6px 10px;
+            font: inherit;
+            cursor: pointer
+        }
+        
+        label {
+            display: block;
+            margin: 8px 0;
+            font-size: 13px
+        }
+        
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--ac)
+        }
+        
+        .pill {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(120, 160, 220, .2)
+        }
+        
+        .pill.responding {
+            background: var(--ok);
+            color: #04121f
+        }
+        
+        .pill.dispatched {
+            background: var(--warn);
+            color: #04121f
+        }
+        
+        .pill.reported {
+            background: var(--bad);
+            color: #fff
+        }
+        
+        .al {
+            border-left: 3px solid var(--ac);
+            padding: 5px 8px;
+            margin: 5px 0;
+            font-size: 12px;
+            background: rgba(70, 130, 210, .07);
+            border-radius: 0 8px 8px 0
+        }
+        
+        .al.crit {
+            border-color: var(--bad)
+        }
+        
+        .al.warn {
+            border-color: var(--warn)
+        }
+        
+        .al.ok {
+            border-color: var(--ok)
+        }
+        
+        .al small {
+            margin-right: 6px
+        }
+        
+        canvas.ch {
+            width: 100%;
+            height: 110px;
+            display: block
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+        
+        td,
+        th {
+            padding: 4px;
+            border-bottom: 1px solid var(--line);
+            text-align: right
+        }
+        
+        td:first-child,
+        th:first-child {
+            text-align: left
+        }
+        
+        #toast {
+            position: fixed;
+            bottom: 22px;
+            left: 50%;
+            transform: translate(-50%, 30px);
+            background: var(--ac);
+            color: #04121f;
+            padding: 8px 16px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: .25s;
+            z-index: 60;
+            pointer-events: none;
+            font-weight: 600
+        }
+        
+        #toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+        
+        #scrim {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 15
+        }
+        
+        @media(max-width:900px) {
+            .mob {
+                display: inline-block
+            }
+            .note {
+                display: none
+            }
+            #top {
+                flex-wrap: wrap
+            }
+            #nav {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                padding-top: 56px;
+                transform: translateX(-105%);
+                transition: .25s;
+                z-index: 40
+            }
+            body.navopen #nav {
+                transform: none
+            }
+            #panel {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: auto;
+                height: 68vh;
+                transform: translateY(105%);
+                transition: transform .25s;
+                z-index: 40;
+                border-radius: 18px 18px 0 0;
+                border-top: 1px solid var(--line)
+            }
+            body.pcol #panel {
+                width: auto
+            }
+            body.panelopen #panel {
+                transform: none
+            }
+            #panes {
+                width: 100%;
+                padding-top: 34px
+            }
+            #pClose {
+                position: absolute;
+                right: 8px;
+                top: 6px;
+                z-index: 3
+            }
+            body.navopen #scrim,
+            body.panelopen #scrim {
+                display: block
+            }
+            #mapctl {
+                display: none
+            }
+            body.ctlopen #mapctl {
+                display: flex
+            }
+            #ctlTog {
+                position: absolute;
+                right: 10px;
+                bottom: 12px;
+                z-index: 6;
+                background: var(--glass)
+            }
+            body.ctlopen #ctlTog {
+                bottom: calc(12px + 280px)
+            }
+            #insp {
+                width: calc(100% - 70px);
+                max-height: 36%
+            }
+            .kpi {
+                min-width: 92px
+            }
+        }
+        
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                transition: none!important
+            }
+        }
+        
+        @keyframes fi {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+        
+        @keyframes pu {
+            50% {
+                opacity: .45
+            }
+        }
+        
+        .pane.active {
+            animation: fi .28s ease
+        }
+        
+        #insp:not([hidden]) {
+            animation: fi .22s ease
+        }
+        
+        #map {
+            animation: fi .8s ease
+        }
+        
+        .pill.reported {
+            animation: pu 1s infinite
+        }
+        
+        .btn:active,
+        .ib:active,
+        .kpi:active {
+            transform: scale(.96)
+        }
+        
+        .kpi,
+        .btn,
+        .ib {
+            transition: transform .12s, border-color .2s, background .2s
+        }
+        
+        #tour {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            background: rgba(0, 0, 0, .6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px
+        }
+        
+        #tour .tc {
+            max-width: 380px;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--ac);
+            border-radius: 16px;
+            padding: 18px;
+            animation: fi .3s ease
+        }
+        
+        #tour p {
+            color: var(--mut)
+        }
+        
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none!important
+            }
+        }
+    </style>
+    <script>
+        window.onerror = function(m, u, l) {
+            var f = document.getElementById("fatal");
+            if (f) {
+                f.style.display = "block";
+                f.textContent = "CityVerse error: " + m + " (" + (u || "").split("/").pop() + ":" + l + "). If files failed to load, extract the zip fully and open index.html from the extracted folder, or use CityVerse-standalone.html."
+            }
+        }
+    </script>
+</head>
+
+<body><noscript><p style="padding:20px;color:#fff">CityVerse needs JavaScript enabled.</p></noscript>
+    <div id="fatal" style="display:none;position:fixed;z-index:99;inset:auto 10px 10px 10px;background:#7a1330;color:#fff;padding:10px;border-radius:10px;font:13px system-ui"></div>
+    <header id="top">
+        <button class="ib mob" id="bNav" aria-label="Open modules">☰</button>
+        <div class="logo"><svg width="26" height="26" viewBox="0 0 32 32"><rect x="3" y="14" width="7" height="14" fill="#27d3ff"/><rect x="12" y="6" width="8" height="22" fill="#3b82f6"/><rect x="22" y="11" width="7" height="17" fill="#27d3ff" opacity=".7"/></svg><b>City<span>Verse</span></b></div>
+        <div class="clock" id="clock">Day 1 · 08:00</div>
+        <button class="btn" id="bPlay">▶ Start</button><button class="btn" id="bReset" title="Reset simulation">↺</button>
+        <select id="speed" title="Simulation speed"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select>
+        <span class="sp"></span><span class="note">Local simulation · not connected to real infrastructure</span>
+        <button class="ib" id="bPanel" aria-label="Toggle panel">▤</button></header>
+    <div id="app">
+        <nav id="nav"></nav>
+        <main id="stage"><canvas id="map"></canvas>
+            <div id="kpis"></div>
+            <div id="hint" hidden></div>
+            <div id="tip" hidden></div>
+            <button class="ib mob" id="ctlTog" aria-label="Map controls">🧭</button>
+            <div id="mapctl"><button class="ib" id="zi" title="Zoom in">＋</button><button class="ib" id="zo" title="Zoom out">－</button><button class="ib" id="zr" title="Reset view">⌖</button><button class="ib" id="zf" title="Fullscreen">⛶</button>
+                <button class="ib on" data-l="city" title="City view">🏙️</button><button class="ib" data-l="traffic" title="Traffic layer">🚦</button><button class="ib" data-l="pollution" title="Pollution heatmap">🌫️</button><button class="ib" data-l="power"
+                    title="Power grid layer">⚡</button><button class="ib" data-l="water" title="Water layer">💧</button></div>
+            <div id="insp" hidden></div>
+        </main>
+        <aside id="panel"><button class="ib mob" id="pClose" aria-label="Close panel">×</button>
+            <div id="panes"></div>
+        </aside>
+    </div>
+    <div id="scrim"></div>
+    <div id="toast"></div>
+    <script>
+        window.CV = window.CV || {};
+        window.$ = id => document.getElementById(id);
+        CV.DEF = {
+            theme: 'dark',
+            speed: 1,
+            cycle: 6,
+            cars: 60,
+            conv: 100,
+            inflow: 100,
+            conservation: 10,
+            curb: false,
+            trees: 0,
+            autoDispatch: true,
+            random: true,
+            showVehicles: true
+        };
+        CV.Storage = {
+            k: 'cityverse.v1',
+            load() {
+                try {
+                    return JSON.parse(localStorage.getItem(this.k)) || {}
+                } catch (e) {
+                    return {}
+                }
+            },
+            save(d) {
+                try {
+                    localStorage.setItem(this.k, JSON.stringify(d))
+                } catch (e) {}
+            },
+            clear() {
+                try {
+                    localStorage.removeItem(this.k)
+                } catch (e) {}
+            }
+        };
+        CV.saved = CV.Storage.load();
+        CV.lastScen = CV.saved.scen || null;
+        CV.cfg = Object.assign({}, CV.DEF, CV.saved.cfg);
+        CV.save = () => CV.Storage.save({
+            cfg: CV.cfg,
+            closed: [...CV.Traffic.closed],
+            hist: CV.Analytics.hist,
+            t: CV.State.t,
+            scen: CV.lastScen
+        });
+    </script>
+    <script>
+        (function() {
+            const CV = window.CV,
+                N = 13,
+                T = 40;
+            const ZN = [
+                ['res', 'school', 'com', 'ind'],
+                ['park', 'res', 'hosp', 'solar'],
+                ['water', 'com', 'park', 'fire'],
+                ['power', 'res', 'school', 'res']
+            ];
+            const NM = {
+                res: 'Residential Block',
+                com: 'Commercial Tower',
+                ind: 'Factory',
+                school: 'School',
+                hosp: 'Hospital',
+                fire: 'Fire Station',
+                park: 'Park',
+                solar: 'Solar Farm',
+                water: 'Reservoir',
+                power: 'Power Plant'
+            };
+            const MW = {
+                res: 1.6,
+                com: 2.5,
+                ind: 4,
+                school: .8,
+                hosp: 2.5,
+                fire: .5,
+                park: .1,
+                solar: 0,
+                water: 1.5,
+                power: 0
+            };
+            const HT = {
+                res: 10,
+                com: 20,
+                ind: 12,
+                school: 8,
+                hosp: 16,
+                fire: 9,
+                park: 0,
+                solar: 3,
+                water: 0,
+                power: 14
+            };
+            const COL = {
+                res: '#5b8def',
+                com: '#8a7dff',
+                ind: '#c58a4a',
+                school: '#f5b942',
+                hosp: '#ff5c7a',
+                fire: '#ff7a45',
+                park: '#2ecf7a',
+                solar: '#2a5fb5',
+                water: '#2fa8ff',
+                power: '#9aa7b5'
+            };
+            const SEC = ['North-West', 'North-East', 'South-West', 'South-East'];
+            const tiles = [],
+                grid = [],
+                count = {},
+                roads = [],
+                cn = {};
+            const hs = (i, j) => Math.abs((i * 73856093) ^ (j * 19349663)) % 100 / 100;
+            for (let j = 0; j < N; j++) {
+                grid[j] = [];
+                for (let i = 0; i < N; i++) {
+                    let t = null;
+                    if (i % 3 && j % 3) {
+                        const bx = i / 3 | 0,
+                            by = j / 3 | 0,
+                            z = ZN[by][bx];
+                        cn[z] = (cn[z] || 0) + 1;
+                        count[z] = cn[z];
+                        t = {
+                            i,
+                            j,
+                            type: z,
+                            name: NM[z] + ' ' + cn[z],
+                            mw: MW[z],
+                            pop: z == 'res' ? 2200 + Math.round(hs(i, j) * 600) : 0,
+                            sector: (by >> 1) * 2 + (bx >> 1),
+                            outage: false,
+                            h: HT[z] + (z == 'res' || z == 'com' ? Math.round(hs(j, i) * 10) : 0)
+                        };
+                        tiles.push(t)
+                    } else roads.push([i, j]);
+                    grid[j][i] = t
+                }
+            }
+            let cv, ctx, raf = 0,
+                P = null,
+                cam = {
+                    x: N * T / 2,
+                    y: N * T / 2,
+                    z: 1
+                };
+            const near = (list, i, j) => list.reduce((b, t) => {
+                const a = Array.isArray(t) ? t : [t.i, t.j],
+                    d = Math.abs(a[0] - i) + Math.abs(a[1] - j);
+                return d < b.d ? {
+                    d,
+                    a
+                } : b
+            }, {
+                d: 1e9
+            }).a;
+            const Map = CV.Map = {
+                N,
+                T,
+                tiles,
+                grid,
+                count,
+                roads,
+                SEC,
+                NM,
+                COL,
+                sel: null,
+                mode: null,
+                layer: 'city',
+                isRoad: (i, j) => i >= 0 && j >= 0 && i < N && j < N && !grid[j][i],
+                secOf: (i, j) => Math.min(1, (j / 3 | 0) >> 1) * 2 + Math.min(1, (i / 3 | 0) >> 1),
+                nearRoad: (i, j) => near(roads, i, j),
+                nearBld: (i, j) => near(tiles, i, j),
+                invalidate() {
+                    if (!raf) raf = requestAnimationFrame(draw)
+                },
+                themeChanged() {
+                    P = null;
+                    this.invalidate()
+                },
+                zoom(f) {
+                    cam.z = Math.max(.4, Math.min(4, cam.z * f));
+                    this.invalidate()
+                },
+                fit() {
+                    cam.x = cam.y = N * T / 2;
+                    cam.z = Math.min(cv.clientWidth, cv.clientHeight) / (N * T + 80) || 1;
+                    this.invalidate()
+                },
+                focus(i, j) {
+                    cam.x = (i + .5) * T;
+                    cam.y = (j + .5) * T;
+                    cam.z = Math.max(cam.z, 1.5);
+                    this.sel = {
+                        i,
+                        j
+                    };
+                    CV.App.inspect(i, j);
+                    this.invalidate()
+                },
+                setLayer(l) {
+                    this.layer = l;
+                    document.querySelectorAll('#mapctl [data-l]').forEach(b => b.classList.toggle('on', b.dataset.l == l));
+                    this.invalidate()
+                },
+                setMode(m, label) {
+                    this.mode = m;
+                    const h = $('hint');
+                    h.hidden = !m;
+                    if (m) {
+                        h.innerHTML = label + '<button id="hx">Done</button>';
+                        $('hx').onclick = () => this.setMode(null)
+                    }
+                    cv.style.cursor = m ? 'crosshair' : 'grab'
+                },
+                draw() {
+                    draw()
+                },
+                init() {
+                    cv = $('map');
+                    ctx = cv.getContext('2d');
+                    const rs = () => {
+                        const d = devicePixelRatio || 1;
+                        cv.width = cv.clientWidth * d;
+                        cv.height = cv.clientHeight * d;
+                        this.invalidate()
+                    };
+                    let first = 1;
+                    new ResizeObserver(() => {
+                        rs();
+                        if (first && cv.clientWidth) {
+                            first = 0;
+                            this.fit()
+                        }
+                    }).observe(cv);
+                    const ptrs = new window.Map();
+                    let drag = null,
+                        pinch = 0;
+                    cv.onpointerdown = e => {
+                        cv.setPointerCapture(e.pointerId);
+                        ptrs.set(e.pointerId, {
+                            x: e.clientX,
+                            y: e.clientY
+                        });
+                        drag = {
+                            moved: 0
+                        };
+                        pinch = 0
+                    };
+                    cv.onpointermove = e => {
+                        if (!ptrs.has(e.pointerId)) {
+                            hover(e);
+                            return
+                        }
+                        const p = ptrs.get(e.pointerId),
+                            dx = e.clientX - p.x,
+                            dy = e.clientY - p.y;
+                        p.x = e.clientX;
+                        p.y = e.clientY;
+                        if (ptrs.size == 2) {
+                            const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+                            if (pinch) this.zoom(d / pinch);
+                            pinch = d;
+                            drag.moved = 99
+                        } else {
+                            cam.x -= dx / cam.z;
+                            cam.y -= dy / cam.z;
+                            drag.moved += Math.abs(dx) + Math.abs(dy)
+                        }
+                        this.invalidate()
+                    };
+                    cv.onpointerup = e => {
+                        ptrs.delete(e.pointerId);
+                        if (drag && drag.moved < 6 && !ptrs.size) click(e);
+                        if (!ptrs.size) drag = null;
+                        pinch = 0
+                    };
+                    cv.onpointerleave = () => $('tip').hidden = true;
+                    cv.addEventListener('wheel', e => {
+                        e.preventDefault();
+                        this.zoom(e.deltaY < 0 ? 1.12 : .89)
+                    }, {
+                        passive: false
+                    });
+                    $('zi').onclick = () => this.zoom(1.25);
+                    $('zo').onclick = () => this.zoom(.8);
+                    $('zr').onclick = () => this.fit();
+                    document.querySelectorAll('#mapctl [data-l]').forEach(b => b.onclick = () => this.setLayer(b.dataset.l))
+                }
+            };
+
+            function pick(e) {
+                const r = cv.getBoundingClientRect();
+                return [Math.floor(((e.clientX - r.left - r.width / 2) / cam.z + cam.x) / T), Math.floor(((e.clientY - r.top - r.height / 2) / cam.z + cam.y) / T)]
+            }
+
+            function click(e) {
+                const [i, j] = pick(e);
+                if (i < 0 || j < 0 || i >= N || j >= N) return;
+                if (Map.mode) {
+                    if (!CV.App.place(Map.mode, i, j)) Map.setMode(null)
+                } else CV.App.inspect(i, j);
+                Map.invalidate()
+            }
+
+            function hover(e) {
+                const [i, j] = pick(e), tp = $('tip');
+                if (i < 0 || j < 0 || i >= N || j >= N) {
+                    tp.hidden = true;
+                    return
+                }
+                const t = grid[j][i];
+                tp.textContent = t ? t.name + (t.outage ? ' (no power)' : '') : (i % 3 == 0 && j % 3 == 0 ? 'Intersection' : 'Road') + ' · ' + ((CV.Traffic.dens[i + ',' + j] || 0).toFixed(1)) + ' veh';
+                const r = $('stage').getBoundingClientRect();
+                tp.style.left = e.clientX - r.left + 14 + 'px';
+                tp.style.top = e.clientY - r.top + 14 + 'px';
+                tp.hidden = false
+            }
+            const pal = () => P || (P = (s => {
+                const g = n => s.getPropertyValue(n).trim();
+                return {
+                    bg: g('--bg'),
+                    ground: g('--ground'),
+                    road: g('--road'),
+                    dash: 'rgba(255,255,255,.2)',
+                    ac: g('--ac')
+                }
+            })(getComputedStyle(document.documentElement)));
+            const heat = v => `hsl(${120-120*v},85%,50%)`;
+
+            function box(x, y, w, h, c) {
+                if (h) {
+                    ctx.fillStyle = c;
+                    ctx.fillRect(x, y - h + w, w, h);
+                    ctx.fillStyle = 'rgba(0,0,0,.4)';
+                    ctx.fillRect(x, y - h + w, w, h)
+                }
+                ctx.fillStyle = c;
+                ctx.fillRect(x, y - h, w, w)
+            }
+
+            function draw() {
+                raf = 0;
+                if (!cv || !CV.State) return;
+                const p = pal(),
+                    W = cv.width,
+                    H = cv.height,
+                    d = devicePixelRatio || 1,
+                    L = Map.layer,
+                    Tr = CV.Traffic,
+                    now = Date.now(),
+                    hr = CV.hour(),
+                    night = hr < 6 || hr >= 19;
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.fillStyle = p.bg;
+                ctx.fillRect(0, 0, W, H);
+                ctx.setTransform(cam.z * d, 0, 0, cam.z * d, W / 2 - cam.x * cam.z * d, H / 2 - cam.y * cam.z * d);
+                ctx.fillStyle = p.ground;
+                ctx.fillRect(-20, -20, N * T + 40, N * T + 40);
+                for (const [i, j] of roads) {
+                    const k = i + ',' + j;
+                    ctx.fillStyle = p.road;
+                    ctx.fillRect(i * T, j * T, T, T);
+                    if (L == 'traffic') {
+                        const v = Math.min(1, (Tr.dens[k] || 0) / 3);
+                        if (v > .05) {
+                            ctx.fillStyle = heat(v);
+                            ctx.globalAlpha = .8;
+                            ctx.fillRect(i * T, j * T, T, T);
+                            ctx.globalAlpha = 1
+                        }
+                    }
+                    ctx.fillStyle = p.dash;
+                    if (j % 3 == 0 && i % 3) ctx.fillRect(i * T + 8, j * T + T / 2 - .5, T - 16, 1);
+                    else if (i % 3 == 0 && j % 3) ctx.fillRect(i * T + T / 2 - .5, j * T + 8, 1, T - 16);
+                    if (Tr.closed.has(k)) {
+                        ctx.strokeStyle = '#ff4d6d';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(i * T + 4, j * T + 4, T - 8, T - 8);
+                        ctx.beginPath();
+                        ctx.moveTo(i * T + 4, j * T + 4);
+                        ctx.lineTo(i * T + T - 4, j * T + T - 4);
+                        ctx.moveTo(i * T + T - 4, j * T + 4);
+                        ctx.lineTo(i * T + 4, j * T + T - 4);
+                        ctx.stroke()
+                    }
+                }
+                for (const t of tiles) {
+                    const x = t.i * T + 5,
+                        y = t.j * T + 5,
+                        s = T - 10;
+                    let c = COL[t.type];
+                    if (L == 'power') c = t.outage ? '#7a2a3a' : (t.type == 'solar' || t.type == 'power' ? '#ffd23d' : '#1d6fa5');
+                    if (L == 'water') c = t.type == 'water' ? '#2fa8ff' : '#244a78';
+                    ctx.globalAlpha = t.outage ? .5 : L == 'pollution' ? .7 : 1;
+                    if (t.type == 'park') {
+                        ctx.fillStyle = c;
+                        ctx.globalAlpha *= .5;
+                        ctx.fillRect(x - 3, y - 3, s + 6, s + 6);
+                        ctx.globalAlpha = 1;
+                        ctx.fillStyle = '#1b8f56';
+                        for (const [a, b] of[[.3, .3], [.7, .45], [.45, .75]]) {
+                            ctx.beginPath();
+                            ctx.arc(x + a * s, y + b * s, 5, 0, 7);
+                            ctx.fill()
+                        }
+                    } else if (t.type == 'water') {
+                        ctx.fillStyle = '#10294a';
+                        ctx.fillRect(x, y, s, s);
+                        ctx.fillStyle = c;
+                        const lv = CV.Water.level / CV.Water.CAP;
+                        ctx.fillRect(x, y + s * (1 - lv), s, s * lv)
+                    } else {
+                        box(x, y, s, t.h, c);
+                        if (night && !t.outage && t.h > 6 && L == 'city') {
+                            ctx.fillStyle = '#ffe9a0';
+                            for (let a = 0; a < 3; a++) ctx.fillRect(x + 4 + a * 10, y - t.h + s + 3, 3, 3)
+                        }
+                    }
+                    ctx.globalAlpha = 1;
+                    if (t.outage) {
+                        ctx.font = '14px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⚡', x + s / 2, y + s / 2)
+                    }
+                }
+                if (L == 'pollution') {
+                    const q = CV.Env.pol;
+                    for (let j = 0; j < N; j++)
+                        for (let i = 0; i < N; i++) {
+                            const v = q[j][i];
+                            if (v > .01) {
+                                ctx.fillStyle = `rgba(255,${Math.round(210-170*Math.min(1,v*2.5))},40,${Math.min(.6,v*1.6)})`;
+                                ctx.fillRect(i * T, j * T, T, T)
+                            }
+                        }
+                }
+                if (CV.cfg.showVehicles)
+                    for (const v of Tr.vehicles) {
+                        const px = (v.x - .18 * v.dy) * T,
+                            py = (v.y + .18 * v.dx) * T;
+                        ctx.fillStyle = v.stop ? '#ff4d6d' : v.c;
+                        v.dx ? ctx.fillRect(px - 5, py - 2.5, 10, 5) : ctx.fillRect(px - 2.5, py - 5, 5, 10)
+                    }
+                for (let i = 0; i < N; i += 3)
+                    for (let j = 0; j < N; j += 3) {
+                        const s = Tr.sigAt(i, j),
+                            o = CV.Energy.out[Map.secOf(i, j)];
+                        ctx.fillStyle = o ? '#ffb83d' : s == 'ns' ? '#2ee59d' : '#ff4d6d';
+                        ctx.beginPath();
+                        ctx.arc(i * T + T / 2, j * T + 4, 2.6, 0, 7);
+                        ctx.fill();
+                        ctx.fillStyle = o ? '#ffb83d' : s == 'ew' ? '#2ee59d' : '#ff4d6d';
+                        ctx.beginPath();
+                        ctx.arc(i * T + 4, j * T + T / 2, 2.6, 0, 7);
+                        ctx.fill()
+                    }
+                const mark = (i, j, em, col) => {
+                    const x = (i + .5) * T,
+                        y = (j + .5) * T,
+                        r = 9 + (now / 70) % 10;
+                    ctx.strokeStyle = col;
+                    ctx.globalAlpha = 1 - (r - 9) / 10;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, 7);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                    ctx.font = '16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(em, x, y + 6)
+                };
+                for (const l of CV.Water.leaks) mark(l.i, l.j, '💧', '#2fa8ff');
+                for (const n of CV.Emergency.incidents) mark(n.i, n.j, CV.Emergency.IC[n.type], '#ff4d6d');
+                if (Map.sel) {
+                    ctx.strokeStyle = p.ac;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(Map.sel.i * T + 1, Map.sel.j * T + 1, T - 2, T - 2)
+                }
+                for (const n of CV.Emergency.incidents)
+                    for (const id of n.assigned) {
+                        const u = CV.Emergency.units.find(x => x.id == id),
+                            f = u.eta0 ? Math.max(0, 1 - u.eta / u.eta0) : 1,
+                            x = (u.home.i + (n.i - u.home.i) * f + .5) * T,
+                            y = (u.home.j + (n.j - u.home.j) * f + .5) * T;
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 8, 0, 7);
+                        ctx.fill();
+                        ctx.font = '11px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText({
+                            fire: '🚒',
+                            amb: '🚑',
+                            pol: '🚓'
+                        }[u.k], x, y + 4)
+                    }
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                const nt = hr < 5 || hr >= 21 ? 1 : hr < 7 ? (7 - hr) / 2 : hr >= 19 ? (hr - 19) / 2 : 0;
+                if (nt > 0 && L == 'city') {
+                    ctx.fillStyle = `rgba(4,10,40,${.3*nt})`;
+                    ctx.fillRect(0, 0, W, H)
+                }
+                if (CV.State.mods.rain > 1.2 || CV.Emergency.incidents.some(n => n.type == 'flood')) {
+                    ctx.strokeStyle = 'rgba(150,200,255,.5)';
+                    ctx.lineWidth = d;
+                    ctx.beginPath();
+                    for (let k = 0; k < 70; k++) {
+                        const x = (k * 97 + now * .25) % W,
+                            y = (k * 57 + now * .6) % H;
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x - 4 * d, y + 12 * d)
+                    }
+                    ctx.stroke()
+                }
+            }
+        })();
+    </script>
+    <script>
+        (function() {
+            const CV = window.CV,
+                M = CV.Map,
+                COLS = ['#27d3ff', '#ffd23d', '#ff7a45', '#e6edff', '#2ee59d'];
+            const Tr = CV.Traffic = {
+                vehicles: [],
+                closed: new Set(),
+                over: {},
+                mode: 'auto',
+                t: 0,
+                cong: 0,
+                avg: 0,
+                stopped: 0,
+                dens: {},
+                series: [],
+                init() {
+                    this.vehicles = [];
+                    this.closed = new Set(CV.saved.closed || []);
+                    this.over = {};
+                    this.mode = 'auto';
+                    this.t = 0;
+                    this.cong = 0;
+                    this.dens = {};
+                    this.series = [];
+                    this.step()
+                },
+                sigAt(i, j) {
+                    const m = this.over[i + ',' + j] || this.mode;
+                    return m == 'auto' ? (Math.floor(this.t / CV.cfg.cycle) % 2 ? 'ew' : 'ns') : m
+                },
+                inter: (i, j) => i % 3 == 0 && j % 3 == 0,
+                spawn() {
+                    let i, j, k = 0;
+                    do {
+                        [i, j] = M.roads[Math.random() * M.roads.length | 0]
+                    } while (this.closed.has(i + ',' + j) && ++k < 20);
+                    const hor = j % 3 == 0 && (i % 3 != 0 || Math.random() < .5),
+                        s = Math.random() < .5 ? 1 : -1;
+                    this.vehicles.push({
+                        x: i + .5,
+                        y: j + .5,
+                        dx: hor ? s : 0,
+                        dy: hor ? 0 : s,
+                        c: COLS[Math.random() * 5 | 0],
+                        stop: 0,
+                        sp: 1
+                    })
+                },
+                turn(v, i, j) {
+                    const o = [
+                        [v.dx, v.dy],
+                        [-v.dy, v.dx],
+                        [v.dy, -v.dx]
+                    ].filter(([x, y]) => M.isRoad(i + x, j + y) && !this.closed.has((i + x) + ',' + (j + y)));
+                    if (!o.length) {
+                        v.dx = -v.dx;
+                        v.dy = -v.dy;
+                        return
+                    }
+                    const st = o.find(d => d[0] == v.dx && d[1] == v.dy),
+                        p = st && Math.random() < .6 ? st : o[Math.random() * o.length | 0];
+                    v.dx = p[0];
+                    v.dy = p[1];
+                    v.x = i + .5;
+                    v.y = j + .5
+                },
+                move(dt) {
+                    this.t += dt;
+                    const c = {};
+                    for (const v of this.vehicles) {
+                        const k = (v.x | 0) + ',' + (v.y | 0);
+                        c[k] = (c[k] || 0) + 1
+                    }
+                    for (const v of this.vehicles) {
+                        const ci = v.x | 0,
+                            cj = v.y | 0,
+                            n = c[ci + ',' + cj] || 1,
+                            out = CV.Energy.out[M.secOf(ci, cj)];
+                        const f = Math.max(.15, 1 - .17 * (n - 1)) * (out ? .6 : 1);
+                        v.sp = f;
+                        v.stop = 0;
+                        const ds = Math.min(.25, 1.7 * f * dt),
+                            nx = v.x + v.dx * ds,
+                            ny = v.y + v.dy * ds,
+                            ni = nx | 0,
+                            nj = ny | 0;
+                        if (ni != ci || nj != cj) {
+                            if (!M.isRoad(ni, nj) || this.closed.has(ni + ',' + nj)) {
+                                v.dx = -v.dx;
+                                v.dy = -v.dy;
+                                continue
+                            }
+                            if (this.inter(ni, nj) && !CV.Energy.out[M.secOf(ni, nj)] && this.sigAt(ni, nj) != (v.dx ? 'ew' : 'ns')) {
+                                v.stop = 1;
+                                continue
+                            }
+                        }
+                        const s = v.dx + v.dy,
+                            cx = (v.dx ? ni : nj) + .5,
+                            a = v.dx ? v.x : v.y,
+                            b = v.dx ? nx : ny;
+                        v.x = nx;
+                        v.y = ny;
+                        if (this.inter(ni, nj) && (a - cx) * s < 0 && (b - cx) * s >= 0) this.turn(v, ni, nj)
+                    }
+                },
+                step() {
+                    const V = this.vehicles,
+                        tg = Math.round(CV.cfg.cars * CV.State.mods.traffic * (.35 + .65 * CV.curve.tr(CV.hour())));
+                    while (V.length < tg) this.spawn();
+                    while (V.length > tg) V.shift();
+                    this.stopped = V.filter(v => v.stop).length;
+                    const raw = 100 * Math.min(1, .75 * this.stopped / Math.max(1, V.length) + .25 * Math.min(1, V.length / 160));
+                    this.cong = this.cong * .7 + raw * .3;
+                    this.avg = V.length ? Math.round(V.reduce((a, v) => a + v.sp * 45, 0) / V.length) : 0;
+                    const c = {};
+                    V.forEach(v => {
+                        const k = (v.x | 0) + ',' + (v.y | 0);
+                        c[k] = (c[k] || 0) + 1
+                    });
+                    for (const k in c) this.dens[k] = (this.dens[k] || 0) * .5 + c[k] * .5;
+                    for (const k in this.dens)
+                        if (!(k in c)) {
+                            this.dens[k] *= .5;
+                            if (this.dens[k] < .05) delete this.dens[k]
+                        }
+                    this.series.push(this.cong);
+                    if (this.series.length > 60) this.series.shift();
+                    if (this.cong > 60) CV.alert('warn', 'Heavy congestion: ' + Math.round(this.cong) + '% — adjust signals or reopen roads', 'cong')
+                },
+                close(i, j, b) {
+                    const k = i + ',' + j;
+                    b ? this.closed.add(k) : this.closed.delete(k);
+                    if (b) this.vehicles = this.vehicles.filter(v => (v.x | 0) != i || (v.y | 0) != j)
+                },
+                toggleClosure(i, j) {
+                    if (!M.isRoad(i, j)) return false;
+                    const k = i + ',' + j,
+                        b = !this.closed.has(k);
+                    this.close(i, j, b);
+                    CV.alert('info', (b ? 'Road closed at ' : 'Road reopened at ') + `(${i},${j})`);
+                    CV.save();
+                    CV.App.refresh();
+                    return true
+                },
+                panel(el) {
+                    el.innerHTML = `<h3>🚦 Traffic Management</h3><div class="g2"><div class="card"><small>Congestion</small><b class="big" id="tr-c"></b></div><div class="card"><small>Vehicles</small><b class="big" id="tr-v"></b></div><div class="card"><small>Avg speed</small><b class="big" id="tr-s"></b></div><div class="card"><small>Closed roads</small><b class="big" id="tr-x"></b></div></div>
+<div class="card"><small>Signal control (all intersections)</small><div class="seg" id="tr-mode"><button data-m="auto">Auto</button><button data-m="ns">North–South green</button><button data-m="ew">East–West green</button></div><label>Cycle length: <b id="tr-cv"></b> s<input type="range" id="tr-cyc" min="3" max="15"></label><small>Tip: click an intersection on the map to override one signal.</small></div>
+<div class="card"><div class="seg"><button class="btn" id="tr-close">🚧 Close roads on map</button><button class="btn" id="tr-clear">Reopen all</button></div><label>Traffic volume: <b id="tr-nv"></b> vehicles<input type="range" id="tr-cars" min="10" max="200"></label></div>
+<div class="card"><small>Congestion, last 60 ticks</small><canvas class="ch" id="tr-ch"></canvas></div><div class="card"><small>Traffic density by district</small><div id="tr-sec"></div></div>`;
+                    $('tr-mode').onclick = e => {
+                        const m = e.target.dataset.m;
+                        if (!m) return;
+                        this.mode = m;
+                        this.over = {};
+                        CV.App.refresh()
+                    };
+                    $('tr-cyc').oninput = e => {
+                        CV.cfg.cycle = +e.target.value;
+                        CV.save();
+                        this.refresh()
+                    };
+                    $('tr-cars').oninput = e => {
+                        CV.cfg.cars = +e.target.value;
+                        CV.save();
+                        this.refresh()
+                    };
+                    $('tr-close').onclick = () => {
+                        CV.Map.setMode('close', 'Click roads to close / reopen them');
+                        if (innerWidth <= 900) document.body.classList.remove('panelopen')
+                    };
+                    $('tr-clear').onclick = () => {
+                        this.closed.clear();
+                        CV.toast('All roads reopened');
+                        CV.save();
+                        CV.App.refresh()
+                    };
+                    $('tr-cyc').value = CV.cfg.cycle;
+                    $('tr-cars').value = CV.cfg.cars
+                },
+                refresh() {
+                    if (!$('tr-c')) return;
+                    $('tr-c').textContent = Math.round(this.cong) + '%';
+                    $('tr-v').textContent = this.vehicles.length;
+                    $('tr-s').textContent = this.avg + ' km/h';
+                    $('tr-x').textContent = this.closed.size;
+                    $('tr-cv').textContent = CV.cfg.cycle;
+                    $('tr-nv').textContent = CV.cfg.cars;
+                    document.querySelectorAll('#tr-mode button').forEach(b => b.classList.toggle('on', b.dataset.m == this.mode));
+                    const s = [0, 0, 0, 0];
+                    this.vehicles.forEach(v => s[M.secOf(v.x | 0, v.y | 0)]++);
+                    const tot = Math.max(1, this.vehicles.length);
+                    $('tr-sec').innerHTML = CV.bars(s.map((n, i) => ({
+                        l: M.SEC[i],
+                        v: 100 * n / tot * 2,
+                        t: n + ' veh',
+                        c: n / tot > .3 ? 'var(--warn)' : ''
+                    })));
+                    CV.Charts.line($('tr-ch'), [{
+                        d: this.series,
+                        c: '#ffb83d'
+                    }], {
+                        min: 0,
+                        max: 100
+                    })
+                }
+            };
+        })();
+    </script>
+    <script>
+        (function() {
+            const CV = window.CV,
+                M = CV.Map;
+            const E = CV.Energy = {
+                out: [0, 0, 0, 0],
+                tm: [0, 0, 0, 0],
+                solar: 0,
+                conv: 0,
+                demand: 0,
+                deficit: 0,
+                renew: 0,
+                eff: 100,
+                sec: [0, 0, 0, 0],
+                mwh: 0,
+                co2: 0,
+                sD: [],
+                sS: [],
+                sSol: [],
+                init() {
+                    this.out = [0, 0, 0, 0];
+                    this.tm = [0, 0, 0, 0];
+                    M.tiles.forEach(t => t.outage = false);
+                    this.mwh = this.co2 = 0;
+                    this.sD = [];
+                    this.sS = [];
+                    this.sSol = [];
+                    this.step(true)
+                },
+                setOutage(s, b, auto) {
+                    this.out[s] = b ? 1 : 0;
+                    this.tm[s] = b && auto ? 8 : 0;
+                    M.tiles.forEach(t => {
+                        if (t.sector == s) t.outage = !!b
+                    });
+                    CV.alert(b ? 'crit' : 'ok', b ? 'Power outage in ' + M.SEC[s] + ' district' : 'Power restored in ' + M.SEC[s] + ' district')
+                },
+                step(init) {
+                    const h = CV.hour(),
+                        m = CV.State.mods;
+                    let dem = 0;
+                    this.sec = [0, 0, 0, 0];
+                    for (const t of M.tiles) {
+                        if (t.outage || !t.mw) continue;
+                        let w = t.mw * CV.curve.dem(h) * m.demand;
+                        if (t.type == 'ind') w *= m.ind * (CV.cfg.curb ? .6 : 1);
+                        dem += w;
+                        this.sec[t.sector] += w
+                    }
+                    const sol = Math.min(dem, M.count.solar * 8 * CV.curve.sun(h) * m.solar),
+                        cap = M.count.power * 20 * CV.cfg.conv / 100,
+                        conv = Math.max(0, Math.min(cap, dem - sol));
+                    this.demand = dem;
+                    this.solar = sol;
+                    this.conv = conv;
+                    this.deficit = Math.max(0, dem - sol - conv);
+                    this.renew = sol + conv > 0 ? 100 * sol / (sol + conv) : 0;
+                    this.eff = dem > 0 ? Math.round(Math.min(1, (sol + conv) / dem) * (70 + 30 * this.renew / 100)) : 100;
+                    if (init) return;
+                    const dh = 5 / 60;
+                    this.mwh += (sol + conv) * dh;
+                    this.co2 += conv * dh * .75;
+                    if (h < .1) {
+                        this.mwh = this.co2 = 0
+                    }
+                    for (let s = 0; s < 4; s++)
+                        if (this.out[s] && this.tm[s] > 0 && --this.tm[s] == 0) this.setOutage(s, false);
+                    this.sD.push(dem);
+                    this.sS.push(sol + conv);
+                    this.sSol.push(sol);
+                    [this.sD, this.sS, this.sSol].forEach(a => {
+                        if (a.length > 48) a.shift()
+                    });
+                    if (this.deficit > .5) CV.alert('crit', 'Power shortage of ' + this.deficit.toFixed(1) + ' MW — raise conventional limit', 'def')
+                },
+                panel(el) {
+                    el.innerHTML = `<h3>⚡ Energy Management</h3><div class="g2"><div class="card"><small>Demand</small><b class="big" id="en-d"></b></div><div class="card"><small>Supply</small><b class="big" id="en-s"></b></div><div class="card"><small>Solar</small><b class="big" id="en-so"></b></div><div class="card"><small>Conventional</small><b class="big" id="en-c"></b></div><div class="card"><small>Renewable share</small><b class="big" id="en-r"></b></div><div class="card"><small>Efficiency</small><b class="big" id="en-e"></b></div></div>
+<div class="card"><label>Conventional capacity limit: <b id="en-lv"></b>%<input type="range" id="en-lim" min="20" max="100" step="5"></label><small id="en-x"></small></div>
+<div class="card"><small>Power distribution by district</small><div id="en-sec"></div></div><div class="card"><small>Usage, last 4 hours (demand / supply / solar, MW)</small><canvas class="ch" id="en-ch"></canvas></div>`;
+                    $('en-lim').oninput = e => {
+                        CV.cfg.conv = +e.target.value;
+                        CV.save();
+                        CV.Energy.step(true);
+                        CV.App.refresh()
+                    };
+                    $('en-lim').value = CV.cfg.conv;
+                    $('en-sec').onclick = e => {
+                        const s = e.target.dataset.s;
+                        if (s == null) return;
+                        this.setOutage(+s, !this.out[+s]);
+                        CV.App.refresh()
+                    }
+                },
+                refresh() {
+                    if (!$('en-d')) return;
+                    const f = (id, v) => $(id).textContent = v;
+                    f('en-d', this.demand.toFixed(1) + ' MW');
+                    f('en-s', (this.solar + this.conv).toFixed(1) + ' MW');
+                    f('en-so', this.solar.toFixed(1) + ' MW');
+                    f('en-c', this.conv.toFixed(1) + ' MW');
+                    f('en-r', Math.round(this.renew) + '%');
+                    f('en-e', this.eff + '%');
+                    f('en-lv', CV.cfg.conv);
+                    $('en-x').textContent = `Deficit ${this.deficit.toFixed(1)} MW · energy today ${this.mwh.toFixed(0)} MWh · CO₂ ${this.co2.toFixed(1)} t`;
+                    $('en-sec').innerHTML = M.SEC.map((n, i) => `<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,this.sec[i]*3.5)}%;background:${this.out[i]?'var(--bad)':''}"></i></div><em>${this.out[i]?'<span class=bad>OUT</span>':this.sec[i].toFixed(1)+' MW'}</em></div><div class="seg"><button data-s="${i}">${this.out[i]?'🔌 Restore power':'⚡ Simulate outage'}</button></div>`).join('');
+                    CV.Charts.line($('en-ch'), [{
+                        d: this.sD,
+                        c: '#ff4d6d'
+                    }, {
+                        d: this.sS,
+                        c: '#27d3ff'
+                    }, {
+                        d: this.sSol,
+                        c: '#ffd23d'
+                    }], {
+                        min: 0
+                    })
+                }
+            };
+        })();
+    </script>
+    <script>
+        (function() {
+                const CV = window.CV,
+                    M = CV.Map;
+                const W = CV.Water = {
+                        CAP: 10,
+                        level: 7,
+                        supply: 0,
+                        demand: 0,
+                        raw: 0,
+                        loss: 0,
+                        ratio: 1,
+                        leaks: [],
+                        saved: 0,
+                        lpcd: 0,
+                        pr: [0, 0, 0, 0],
+                        s1: [],
+                        s2: [],
+                        nid: 1,
+                        init() {
+                            this.level = 7;
+                            this.leaks = [];
+                            this.saved = 0;
+                            this.s1 = [];
+                            this.s2 = [];
+                            this.ratio = 1;
+                            this.calc()
+                        },
+                        calc() {
+                            const S = CV.State,
+                                m = S.mods,
+                                c = CV.cfg.conservation / 100;
+                            this.raw = S.pop * 1.1e-5 * CV.curve.wat(CV.hour()) * m.water;
+                            this.demand = this.raw * (1 - c);
+                            this.supply = .45 * CV.cfg.inflow / 100 * m.rain;
+                            this.loss = this.leaks.length * .05;
+                            this.lpcd = Math.round(this.demand * 24 * 1e6 / Math.max(1, S.pop))
+                        },
+                        step() {
+                            this.calc();
+                            const dt = 5 / 60,
+                                av = this.level + this.supply * dt,
+                                need = (this.demand + this.loss) * dt;
+                            if (av >= need) {
+                                this.level = Math.min(this.CAP, av - need);
+                                this.ratio = 1
+                            } else {
+                                this.level = 0;
+                                this.ratio = av / need
+                            }
+                            this.saved += (this.raw - this.demand) * dt;
+                            this.leaks.forEach(l => {
+                                if (l.fix > 0 && --l.fix == 0) l.done = 1
+                            });
+                            const d = this.leaks.filter(l => l.done);
+                            if (d.length) {
+                                this.leaks = this.leaks.filter(l => !l.done);
+                                CV.alert('ok', 'Leak repaired — pipe restored')
+                            }
+                            const p = this.level / this.CAP;
+                            if (p < .2) CV.alert(p < .1 ? 'crit' : 'warn', 'Reservoir at ' + Math.round(p * 100) + '%', 'wl');
+                            if (this.ratio < 1) CV.alert('crit', 'Water rationing: ' + Math.round(this.ratio * 100) + '% of demand served', 'wr');
+                            this.pr = [0, 1, 2, 3].map(s => Math.max(5, Math.round(60 * (.4 + .6 * this.ratio) * (.65 + .35 * Math.min(1, p * 3)) - 5 * this.leaks.filter(l => M.secOf(l.i, l.j) == s).length)));
+                            this.s1.push(this.demand + this.loss);
+                            this.s2.push(this.supply);
+                            [this.s1, this.s2].forEach(a => {
+                                if (a.length > 48) a.shift()
+                            })
+                        },
+                        addLeak(i, j) {
+                            const [a, b] = M.isRoad(i, j) ? [i, j] : M.nearRoad(i, j);
+                            if (this.leaks.some(l => l.i == a && l.j == b)) {
+                                CV.toast('A leak already exists there');
+                                return
+                            }
+                            this.leaks.push({
+                                id: this.nid++,
+                                i: a,
+                                j: b,
+                                fix: 0
+                            });
+                            CV.alert('warn', `Water leak detected at (${a},${b}) in ${M.SEC[M.secOf(a,b)]} district`);
+                            CV.App.refresh()
+                        },
+                        panel(el) {
+                            el.innerHTML = `<h3>💧 Water Management</h3><div class="card"><div class="row2"><small>Reservoir level</small><b id="wa-p"></b></div><div class="bar"><i id="wa-b"></i></div></div>
+<div class="g2"><div class="card"><small>Demand</small><b class="big" id="wa-d"></b></div><div class="card"><small>Supply</small><b class="big" id="wa-s"></b></div><div class="card"><small>Per person</small><b class="big" id="wa-l"></b></div><div class="card"><small>Water saved</small><b class="big" id="wa-v"></b></div></div>
+<div class="card"><label>Conservation target: <b id="wa-cv"></b>% less demand<input type="range" id="wa-con" min="0" max="30"></label><label>Treatment inflow: <b id="wa-iv"></b>%<input type="range" id="wa-in" min="50" max="150" step="5"></label></div>
+<div class="card"><small>Distribution pressure (psi)</small><div id="wa-pr"></div></div>
+<div class="card"><div class="row2"><small>Leakage incidents</small><span class="seg"><button class="btn" id="wa-rl">🎲 Random</button><button class="btn" id="wa-pl">📍 Place</button></span></div><div id="wa-lk"></div></div>
+<div class="card"><small>Demand vs supply (ML/h)</small><canvas class="ch" id="wa-ch"></canvas></div>`;
+                            $('wa-con').oninput = e => {
+                                CV.cfg.conservation = +e.target.value;
+                                CV.save();
+                                this.calc();
+                                CV.App.refresh()
+                            };
+                            $('wa-in').oninput = e => {
+                                CV.cfg.inflow = +e.target.value;
+                                CV.save();
+                                this.calc();
+                                CV.App.refresh()
+                            };
+                            $('wa-con').value = CV.cfg.conservation;
+                            $('wa-in').value = CV.cfg.inflow;
+                            $('wa-rl').onclick = () => this.addLeak(...M.roads[Math.random() * M.roads.length | 0]);
+                            $('wa-pl').onclick = () => {
+                                M.setMode('leak', 'Click a road to create a leak');
+                                if (innerWidth <= 900) document.body.classList.remove('panelopen')
+                            };
+                            $('wa-lk').onclick = e => {
+                                const i = e.target.dataset.r;
+                                if (!i) return;
+                                const l = this.leaks.find(x => x.id == +i);
+                                if (l) {
+                                    l.fix = 6;
+                                    CV.toast('Repair crew dispatched');
+                                    CV.App.refresh()
+                                }
+                            }
+                        },
+                        refresh() {
+                            if (!$('wa-p')) return;
+                            const p = Math.round(100 * this.level / this.CAP);
+                            $('wa-p').textContent = p + '% (' + this.level.toFixed(1) + ' ML)';
+                            $('wa-b').style.width = p + '%';
+                            $('wa-b').style.background = p < 20 ? 'var(--bad)' : p < 40 ? 'var(--warn)' : '';
+                            $('wa-d').textContent = this.demand.toFixed(2) + ' ML/h';
+                            $('wa-s').textContent = this.supply.toFixed(2) + ' ML/h';
+                            $('wa-l').textContent = this.lpcd + ' L/day';
+                            $('wa-v').textContent = this.saved.toFixed(1) + ' ML';
+                            $('wa-cv').textContent = CV.cfg.conservation;
+                            $('wa-iv').textContent = CV.cfg.inflow;
+                            $('wa-pr').innerHTML = CV.bars(M.SEC.map((n, i) => ({
+                                l: n,
+                                v: this.pr[i] / 70 * 100,
+                                t: this.pr[i] + ' psi',
+                                c: this.pr[i] < 35 ? 'var(--bad)' : ''
+                            })));
+                            $('wa-lk').innerHTML = this.leaks.length ? this.leaks.map(l => `<div class="row2"><span>Leak #${l.id} · (${l.i},${l.j})</span>${l.fix?`<small>repairing… ${l.fix}</small>`:`<button class="btn" data-r="${l.id}">🔧 Repair</button>`}</div>`).join(''):'<div class="empty">No leaks detected. Distribution is healthy.</div>';
+CV.Charts.line($('wa-ch'),[{d:this.s1,c:'#ff7a45'},{d:this.s2,c:'#2fa8ff'}],{min:0})}};
+})();
+    </script>
+    <script>
+        (function() {
+            const CV = window.CV,
+                M = CV.Map,
+                N = M.N;
+            const Z = () => Array.from({
+                length: N
+            }, () => Array(N).fill(0));
+            const CAT = a => a <= 50 ? ['Good', 'var(--ok)'] : a <= 100 ? ['Moderate', 'var(--warn)'] : a <= 150 ? ['Unhealthy (sensitive)', '#ff8a3d'] : a <= 200 ? ['Unhealthy', 'var(--bad)'] : ['Hazardous', '#c026d3'];
+            const V = CV.Env = {
+                pol: Z(),
+                aqi: 50,
+                noise: 45,
+                green: 12,
+                wind: [1, 0],
+                s1: [],
+                s2: [],
+                init() {
+                    this.pol = Z();
+                    this.wind = [1, 0];
+                    this.s1 = [];
+                    this.s2 = [];
+                    for (let k = 0; k < 20; k++) this.step(true)
+                },
+                step(init) {
+                    const m = CV.State.mods,
+                        e = Z();
+                    for (const k in CV.Traffic.dens) {
+                        const [i, j] = k.split(',');
+                        e[j][i] += CV.Traffic.dens[k] * .012 * m.pol
+                    }
+                    for (const t of M.tiles) {
+                        if (t.type == 'ind') e[t.j][t.i] += .06 * m.pol * m.ind * (CV.cfg.curb ? .5 : 1);
+                        if (t.type == 'power') e[t.j][t.i] += .06 * Math.min(1, CV.Energy.conv / 80)
+                    }
+                    for (const n of CV.Emergency.incidents)
+                        if (n.type == 'fire') e[n.j][n.i] += .1 * n.sev;
+                    if (!init && CV.State.t % 120 == 0 && Math.random() < .4) this.wind = [
+                        [1, 0],
+                        [-1, 0],
+                        [0, 1],
+                        [0, -1]
+                    ][Math.random() * 4 | 0];
+                    const p = this.pol,
+                        q = Z(),
+                        [wx, wy] = this.wind;
+                    for (let j = 0; j < N; j++)
+                        for (let i = 0; i < N; i++) {
+                            let s = 0,
+                                c = 0;
+                            for (const [a, b] of[[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                                const x = i + a,
+                                    y = j + b;
+                                if (x >= 0 && y >= 0 && x < N && y < N) {
+                                    s += p[y][x];
+                                    c++
+                                }
+                            }
+                            const ux = i - wx,
+                                uy = j - wy,
+                                up = ux >= 0 && uy >= 0 && ux < N && uy < N ? p[uy][ux] : 0;
+                            let v = (p[j][i] * .55 + s / c * .3 + up * .15) * .96 + e[j][i];
+                            const t = M.grid[j][i];
+                            if (t && t.type == 'park') v *= .9;
+                            q[j][i] = Math.min(1, v)
+                        }
+                    this.pol = q;
+                    this.green = Math.min(60, M.count.park / 64 * 100 + CV.cfg.trees * .5);
+                    let mean = 0;
+                    q.forEach(r => r.forEach(v => mean += v));
+                    mean /= N * N;
+                    this.aqi = Math.max(10, Math.min(500, Math.round((20 + 330 * mean) * (1 - this.green / 250))));
+                    const h = CV.hour();
+                    this.noise = Math.round(Math.min(110, 40 + 30 * Math.min(1, CV.Traffic.vehicles.length / 150) + 6 * CV.State.mods.ind - (h < 6 || h >= 22 ? 6 : 0)));
+                    if (init) return;
+                    this.s1.push(this.aqi);
+                    this.s2.push(this.noise);
+                    [this.s1, this.s2].forEach(a => {
+                        if (a.length > 48) a.shift()
+                    });
+                    if (this.aqi > 150) CV.alert('crit', 'Air quality ' + CV.aqiCat(this.aqi) + ' (AQI ' + this.aqi + ')', 'aqi');
+                    else if (this.aqi > 100) CV.alert('warn', 'Air quality is unhealthy for sensitive groups (AQI ' + this.aqi + ')', 'aqi');
+                    if (this.noise > 75) CV.alert('warn', 'Noise level high: ' + this.noise + ' dB', 'noi')
+                },
+                panel(el) {
+                    el.innerHTML = `<h3>🌿 Environmental Monitoring</h3><div class="card"><small>Air quality index</small><b class="big" id="ev-a"></b><small id="ev-ac"></small></div>
+<div class="g2"><div class="card"><small>Noise</small><b class="big" id="ev-n"></b></div><div class="card"><small>Green coverage</small><b class="big" id="ev-g"></b></div><div class="card"><small>Wind</small><b class="big" id="ev-w"></b></div><div class="card"><small>Trees planted</small><b class="big" id="ev-t"></b></div></div>
+<div class="card"><div class="seg"><button class="btn" id="ev-heat">🌫️ Show heatmap</button><button class="btn" id="ev-tree">🌳 Plant 10 trees</button></div><label><input type="checkbox" id="ev-curb"> Emission curbs on factories (−50% pollution, −40% power)</label></div>
+<div class="card"><small>AQI and noise (dB), last 4 hours</small><canvas class="ch" id="ev-ch"></canvas></div>`;
+                    $('ev-heat').onclick = () => {
+                        M.setLayer('pollution');
+                        CV.toast('Pollution heatmap on the map');
+                        if (innerWidth <= 900) document.body.classList.remove('panelopen')
+                    };
+                    $('ev-tree').onclick = () => {
+                        CV.cfg.trees += 10;
+                        CV.save();
+                        CV.toast('10 trees planted');
+                        CV.Env.step(true);
+                        CV.App.refresh()
+                    };
+                    $('ev-curb').checked = CV.cfg.curb;
+                    $('ev-curb').onchange = e => {
+                        CV.cfg.curb = e.target.checked;
+                        CV.save();
+                        CV.Energy.step(true);
+                        CV.App.refresh()
+                    }
+                },
+                refresh() {
+                    if (!$('ev-a')) return;
+                    const c = CAT(this.aqi);
+                    $('ev-a').textContent = this.aqi;
+                    $('ev-a').style.color = c[1];
+                    $('ev-ac').textContent = c[0];
+                    $('ev-n').textContent = this.noise + ' dB';
+                    $('ev-g').textContent = this.green.toFixed(1) + '%';
+                    $('ev-w').textContent = {
+                        '1,0': '→ East',
+                        '-1,0': '← West',
+                        '0,1': '↓ South',
+                        '0,-1': '↑ North'
+                    }[this.wind.join()];
+                    $('ev-t').textContent = CV.cfg.trees;
+                    CV.Charts.line($('ev-ch'), [{
+                        d: this.s1,
+                        c: '#ff4d6d'
+                    }, {
+                        d: this.s2,
+                        c: '#8a7dff'
+                    }], {
+                        min: 0
+                    })
+                }
+            };
+            CV.aqiCat = a => CAT(a)[0];
+        })();
+    </script>
+    <script>
+        (function() {
+                const CV = window.CV,
+                    M = CV.Map;
+                const NEED = {
+                        fire: ['fire', 'fire'],
+                        flood: ['pol', 'pol'],
+                        accident: ['amb', 'pol'],
+                        medical: ['amb']
+                    },
+                    BASE = {
+                        fire: 14,
+                        flood: 20,
+                        accident: 8,
+                        medical: 6
+                    },
+                    KN = {
+                        fire: 'Fire trucks',
+                        amb: 'Ambulances',
+                        pol: 'Police / rescue'
+                    };
+                const rnd = a => a[Math.random() * a.length | 0];
+                const E = CV.Emergency = {
+                        IC: {
+                            fire: '🔥',
+                            flood: '🌊',
+                            accident: '🚗',
+                            medical: '🚑'
+                        },
+                        incidents: [],
+                        units: [],
+                        resolved: 0,
+                        resp: [],
+                        nid: 1,
+                        sel: 'fire',
+                        init() {
+                            this.incidents = [];
+                            this.resolved = 0;
+                            this.resp = [];
+                            this.nid = 1;
+                            let u = 1;
+                            this.units = [];
+                            M.tiles.filter(t => t.type == 'fire').forEach(t => this.units.push({
+                                id: u++,
+                                k: 'fire',
+                                home: t,
+                                busy: 0,
+                                eta: 0
+                            }));
+                            M.tiles.filter(t => t.type == 'hosp').forEach(t => this.units.push({
+                                id: u++,
+                                k: 'amb',
+                                home: t,
+                                busy: 0,
+                                eta: 0
+                            }));
+                            M.tiles.filter(t => t.type == 'com').slice(0, 4).forEach(t => this.units.push({
+                                id: u++,
+                                k: 'pol',
+                                home: t,
+                                busy: 0,
+                                eta: 0
+                            }))
+                        },
+                        create(type, i, j, sev) {
+                            let a = i,
+                                b = j;
+                            if (type == 'accident' && !M.isRoad(i, j))[a, b] = M.nearRoad(i, j);
+                            if (type == 'fire' && M.isRoad(i, j))[a, b] = M.nearBld(i, j);
+                            const t = M.grid[b][a],
+                                n = {
+                                    id: this.nid++,
+                                    type,
+                                    i: a,
+                                    j: b,
+                                    sev: sev || 1 + (Math.random() * 3 | 0),
+                                    age: 0,
+                                    progress: 0,
+                                    need: NEED[type].slice(),
+                                    assigned: [],
+                                    resp: null,
+                                    closed: false,
+                                    status: 'reported',
+                                    name: t ? t.name : `Road (${a},${b})`
+                                };
+                            if ((type == 'accident' || type == 'flood') && M.isRoad(a, b) && !CV.Traffic.closed.has(a + ',' + b)) {
+                                CV.Traffic.close(a, b, true);
+                                n.closed = true
+                            }
+                            this.incidents.push(n);
+                            CV.alert('crit', `${this.IC[type]} ${type} reported at ${n.name}`);
+                            if (CV.cfg.autoDispatch) this.dispatch(n);
+                            CV.App.refresh();
+                            return n
+                        },
+                        dispatch(n) {
+                            const miss = n.need.slice();
+                            n.assigned.forEach(id => {
+                                const x = miss.indexOf(this.units.find(u => u.id == id).k);
+                                if (x >= 0) miss.splice(x, 1)
+                            });
+                            n.short = false;
+                            for (const k of miss) {
+                                let best = null,
+                                    bd = 1e9;
+                                for (const u of this.units)
+                                    if (u.k == k && !u.busy) {
+                                        const d = Math.abs(u.home.i - n.i) + Math.abs(u.home.j - n.j);
+                                        if (d < bd) {
+                                            bd = d;
+                                            best = u
+                                        }
+                                    }
+                                if (best) {
+                                    best.busy = n.id;
+                                    best.eta = Math.ceil(bd / 3) + 1;
+                                    best.eta0 = best.eta;
+                                    n.assigned.push(best.id)
+                                } else n.short = true
+                            }
+                            if (n.assigned.length && n.status == 'reported') n.status = 'dispatched';
+                            return n.assigned.length
+                        },
+                        end(n, ok) {
+                            this.units.forEach(u => {
+                                if (u.busy == n.id) {
+                                    u.busy = 0;
+                                    u.eta = 0
+                                }
+                            });
+                            if (n.closed) CV.Traffic.close(n.i, n.j, false);
+                            this.incidents = this.incidents.filter(x => x != n);
+                            if (ok) {
+                                this.resolved++;
+                                CV.alert('ok', `${n.type} at ${n.name} resolved`)
+                            } else CV.alert('info', `Incident #${n.id} cancelled`)
+                        },
+                        step() {
+                            for (const n of this.incidents.slice()) {
+                                n.age++;
+                                if (CV.cfg.autoDispatch && (n.assigned.length < n.need.length)) this.dispatch(n);
+                                let arr = 0;
+                                n.assigned.forEach(id => {
+                                    const u = this.units.find(x => x.id == id);
+                                    if (u.eta > 0) u.eta--;
+                                    if (u.eta <= 0) arr++
+                                });
+                                if (arr && n.resp == null) {
+                                    n.resp = n.age;
+                                    this.resp.push(n.age)
+                                }
+                                if (arr) {
+                                    n.progress += 100 / (BASE[n.type] * (.7 + .3 * n.sev)) * arr / n.need.length;
+                                    n.status = 'responding'
+                                } else {
+                                    n.status = n.assigned.length ? 'dispatched' : 'reported';
+                                    if (n.age % 6 == 0 && n.sev < 3) {
+                                        n.sev++;
+                                        CV.alert('warn', `Incident #${n.id} is escalating (severity ${n.sev})`)
+                                    }
+                                }
+                                if (n.progress >= 100) this.end(n, true)
+                            }
+                        },
+                        panel(el) {
+                            const f = this.incidents;
+                            el.innerHTML = `<h3>🚨 Emergency Management</h3><div class="g2"><div class="card"><small>Active</small><b class="big" id="em-a"></b></div><div class="card"><small>Resolved</small><b class="big" id="em-r"></b></div><div class="card"><small>Avg response</small><b class="big" id="em-t"></b></div><div class="card"><small>Units busy</small><b class="big" id="em-u"></b></div></div>
+<div class="card"><small>Create incident</small><div class="seg" id="em-ty">${Object.keys(this.IC).map(k=>`<button data-t="${k}">${this.IC[k]} ${k}</button>`).join('')}</div><div class="seg"><button class="btn" id="em-pl">📍 Place on map</button><button class="btn" id="em-rd">🎲 Random location</button></div><label><input type="checkbox" id="em-au"> Auto-dispatch nearest units</label></div>
+<div id="em-ls"></div><div class="card"><small>Rescue resources</small><div id="em-un"></div></div>
+<div class="card"><small>Fire stations and hospitals</small>${M.tiles.filter(t=>t.type=='fire'||t.type=='hosp').map(t=>`<div class="row2"><span>${t.type=='fire'?'🚒':'🏥'} ${t.name}</span><button class="btn" data-f="${t.i},${t.j}">Locate</button></div>`).join('')}</div>`;
+$('em-ty').onclick=e=>{if(e.target.dataset.t){this.sel=e.target.dataset.t;this.refresh()}};
+$('em-pl').onclick=()=>{M.setMode('inc:'+this.sel,'Click the map to place: '+this.sel);if(innerWidth<=900)document.body.classList.remove('panelopen')};
+$('em-rd').onclick=()=>{const t=this.sel,r=t=='accident'?rnd(M.roads):t=='flood'?rnd(M.roads.concat(M.tiles.map(x=>[x.i,x.j]))):t=='medical'?(x=>[x.i,x.j])(rnd(M.tiles.filter(x=>x.type=='res'))):(x=>[x.i,x.j])(rnd(M.tiles.filter(x=>x.type!='park')));this.create(t,r[0],r[1])};
+$('em-au').checked=CV.cfg.autoDispatch;$('em-au').onchange=e=>{CV.cfg.autoDispatch=e.target.checked;CV.save()};
+el.onclick=e=>{const d=e.target.dataset;if(d.f){const[i,j]=d.f.split(',').map(Number);M.focus(i,j)}else if(d.a){const n=this.incidents.find(x=>x.id==+d.i);if(!n)return;if(d.a=='d'){CV.toast(this.dispatch(n)?'Units dispatched':'No free units available');}else this.end(n,false);CV.App.refresh()}}},
+refresh(){if(!$('em-a'))return;const b=this.units.filter(u=>u.busy).length;$('em-a').textContent=this.incidents.length;$('em-r').textContent=this.resolved;$('em-t').textContent=this.resp.length?Math.round(this.resp.reduce((a,x)=>a+x,0)/this.resp.length*5)+' min':'–';$('em-u').textContent=b+'/'+this.units.length;
+document.querySelectorAll('#em-ty button').forEach(x=>x.classList.toggle('on',x.dataset.t==this.sel));
+$('em-ls').innerHTML=this.incidents.length?this.incidents.map(n=>`<div class="card"><div class="row2"><b>${this.IC[n.type]} ${n.type} #${n.id}</b><span class="pill ${n.status}">${n.status}</span></div><small>${n.name} · severity ${n.sev} · units ${n.assigned.length}/${n.need.length}${n.short?' · <span class=warn>no free unit</span>':''}</small><div class="bar"><i style="width:${Math.min(100,n.progress)}%"></i></div><div class="seg"><button class="btn" data-a="d" data-i="${n.id}">🚓 Dispatch units</button><button class="btn" data-a="c" data-i="${n.id}">✖ Cancel</button></div></div>`).join(''):'<div class="empty">✅ No active incidents. Create one above, or keep random events on in Settings.</div>';
+$('em-un').innerHTML=Object.keys(KN).map(k=>{const a=this.units.filter(u=>u.k==k),f=a.filter(u=>!u.busy).length;return`<div class="row"><span>${KN[k]}</span><div class="bar"><i style="width:${100*f/a.length}%"></i></div><em>${f}/${a.length} free</em></div>`}).join('')}};
+})();
+    </script>
+    <script>
+        (function() {
+                const CV = window.CV,
+                    KEYS = ['pop', 'cong', 'dem', 'eff', 'aqi'];
+                const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+                CV.bars = rows => rows.map(r => `<div class="row"><span>${r.l}</span><div class="bar"><i style="width:${Math.max(0,Math.min(100,r.v))}%;background:${r.c||''}"></i></div><em>${r.t}</em></div>`).join('');
+                CV.Charts = {
+                    line(c, S, o = {}) {
+                        if (!c) return;
+                        const d = devicePixelRatio || 1,
+                            w = c.clientWidth,
+                            h = c.clientHeight;
+                        if (!w) return;
+                        c.width = w * d;
+                        c.height = h * d;
+                        const x = c.getContext('2d');
+                        x.scale(d, d);
+                        const all = S.flatMap(s => s.d);
+                        x.font = '10px system-ui';
+                        x.fillStyle = css('--mut');
+                        if (all.length < 2) {
+                            x.fillText('Collecting data… press Start', 10, h / 2);
+                            return
+                        }
+                        let mn = o.min != null ? o.min : Math.min(...all),
+                            mx = o.max != null ? o.max : Math.max(...all);
+                        if (mx <= mn) {
+                            mx = mn + 1
+                        }
+                        if (o.min == null) {
+                            const pd = (mx - mn) * .1;
+                            mn -= pd;
+                            mx += pd
+                        }
+                        x.strokeStyle = css('--line');
+                        for (let k = 0; k < 3; k++) {
+                            const y = 6 + k * (h - 24) / 2;
+                            x.beginPath();
+                            x.moveTo(0, y);
+                            x.lineTo(w, y);
+                            x.stroke()
+                        }
+                        x.fillText(mx >= 1000 ? Math.round(mx).toLocaleString() : mx.toFixed(1), 2, 14);
+                        x.fillText(mn >= 1000 ? Math.round(mn).toLocaleString() : mn.toFixed(1), 2, h - 16);
+                        if (o.labels) {
+                            x.fillText(o.labels[0], 2, h - 3);
+                            x.textAlign = 'right';
+                            x.fillText(o.labels[1], w - 2, h - 3);
+                            x.textAlign = 'left'
+                        }
+                        S.forEach(s => {
+                            x.beginPath();
+                            s.d.forEach((v, i) => {
+                                const px = 4 + i * (w - 8) / (s.d.length - 1),
+                                    py = 6 + (1 - (v - mn) / (mx - mn)) * (h - 24);
+                                i ? x.lineTo(px, py) : x.moveTo(px, py)
+                            });
+                            x.strokeStyle = s.c;
+                            x.lineWidth = 2;
+                            x.stroke()
+                        })
+                    }
+                };
+                const g = (a, b, s) => Math.exp(-((a - b) ** 2) / (2 * s * s));
+                const mk = (hr, k) => ({
+                    pop: 40000 * (1 + (k - 30) * .0015),
+                    cong: 35 * CV.curve.tr(hr) + 8 + 4 * Math.sin(k * 1.7 + hr),
+                    dem: 87 * CV.curve.dem(hr) * (.95 + .08 * Math.sin(k)),
+                    eff: 76 + 8 * Math.sin(k * .7 + hr / 5),
+                    aqi: 55 + 25 * Math.sin(k * .5) + 20 * g(hr, 8, 2) + 15 * g(hr, 18, 2)
+                });
+                const MET = [
+                    ['Population', 'pop', '#27d3ff'],
+                    ['Traffic congestion %', 'cong', '#ffb83d'],
+                    ['Energy demand (MW)', 'dem', '#ff7a45'],
+                    ['Energy efficiency %', 'eff', '#2ee59d'],
+                    ['Air quality (AQI)', 'aqi', '#ff4d6d']
+                ];
+                const A = CV.Analytics = {
+                        hist: null,
+                        acc: null,
+                        range: 'd',
+                        init() {
+                            const s = CV.saved.hist;
+                            if (s && s.h && s.d) this.hist = s;
+                            else {
+                                this.hist = {
+                                    h: Array.from({
+                                        length: 24
+                                    }, (_, k) => mk((k + 9) % 24, 0)),
+                                    d: Array.from({
+                                        length: 30
+                                    }, (_, k) => mk(12, k))
+                                }
+                            }
+                            this.acc = null
+                        },
+                        sample() {
+                            const S = CV.State,
+                                a = this.acc = this.acc || {
+                                    n: 0,
+                                    pop: 0,
+                                    cong: 0,
+                                    dem: 0,
+                                    eff: 0,
+                                    aqi: 0
+                                };
+                            a.n++;
+                            a.pop += S.pop;
+                            a.cong += CV.Traffic.cong;
+                            a.dem += CV.Energy.demand;
+                            a.eff += CV.Energy.eff;
+                            a.aqi += CV.Env.aqi;
+                            if (S.t % 60 == 0) {
+                                const r = {};
+                                KEYS.forEach(k => r[k] = a[k] / a.n);
+                                this.hist.h.push(r);
+                                if (this.hist.h.length > 24) this.hist.h.shift();
+                                this.acc = null;
+                                if (S.t % 1440 == 0) {
+                                    const d = {};
+                                    KEYS.forEach(k => d[k] = this.hist.h.reduce((s, x) => s + x[k], 0) / this.hist.h.length);
+                                    this.hist.d.push(d);
+                                    if (this.hist.d.length > 30) this.hist.d.shift()
+                                }
+                            }
+                        },
+                        data() {
+                            return this.range == 'd' ? this.hist.h : this.range == 'w' ? this.hist.d.slice(-7) : this.hist.d
+                        },
+                        panel(el) {
+                            el.innerHTML = `<h3>📊 City Analytics</h3><div class="seg" id="an-r"><button data-r="d">Daily (24 h)</button><button data-r="w">Weekly</button><button data-r="m">Monthly</button></div>${MET.map((m,i)=>`<div class="card"><div class="row2"><small>${m[0]}</small><b id="an-v${i}"></b></div><canvas class="ch" id="an-c${i}"></canvas></div>`).join('')}`;
+$('an-r').onclick=e=>{if(e.target.dataset.r){this.range=e.target.dataset.r;this.refresh()}}},
+refresh(){if(!$('an-r'))return;document.querySelectorAll('#an-r button').forEach(b=>b.classList.toggle('on',b.dataset.r==this.range));const D=this.data(),lb=this.range=='d'?['24 h ago','now']:this.range=='w'?['7 days ago','today']:['30 days ago','today'];
+MET.forEach((m,i)=>{const v=D.map(x=>x[m[1]]),l=v[v.length-1]||0;$('an-v'+i).textContent=m[1]=='pop'?Math.round(l).toLocaleString():l.toFixed(m[1]=='dem'?1:0);CV.Charts.line($('an-c'+i),[{d:v,c:m[2]}],{labels:lb})})}};
+})();
+    </script>
+    <script>
+        (function() {
+                const CV = window.CV,
+                    M = CV.Map,
+                    rnd = a => a[Math.random() * a.length | 0];
+                const g = (a, b, s) => Math.exp(-((a - b) ** 2) / (2 * s * s));
+                CV.curve = {
+                    dem: h => .55 + .22 * g(h, 8, 2.2) + .32 * g(h, 19, 2.5),
+                    tr: h => Math.min(1, .28 + .7 * g(h, 8, 1.8) + .75 * g(h, 17.5, 2) + .2 * g(h, 13, 3)),
+                    wat: h => .6 + .55 * g(h, 7, 1.5) + .6 * g(h, 19, 2) + .2 * g(h, 13, 3),
+                    sun: h => h > 6 && h < 18 ? Math.sin(Math.PI * (h - 6) / 12) : 0
+                };
+                CV.hour = () => (CV.State.t / 60) % 24;
+                CV.clock = () => {
+                    const t = CV.State.t,
+                        m = t % 1440;
+                    return `Day ${1+Math.floor(t/1440)} · ${String(m/60|0).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`
+                };
+                CV.alert = (l, m, k) => {
+                    const S = CV.State;
+                    if (k) {
+                        if (S.ak[k] != null && S.t - S.ak[k] < 120) return;
+                        S.ak[k] = S.t
+                    }
+                    S.alerts.unshift({
+                        l,
+                        m,
+                        c: CV.clock(),
+                        t: S.t
+                    });
+                    if (S.alerts.length > 40) S.alerts.length = 40
+                };
+                CV.kpis = () => {
+                    const E = CV.Energy,
+                        wp = 100 * CV.Water.level / CV.Water.CAP,
+                        k = {
+                            cong: CV.Traffic.cong,
+                            deficit: E.deficit,
+                            renew: E.renew,
+                            water: wp,
+                            aqi: CV.Env.aqi,
+                            inc: CV.Emergency.incidents.length
+                        };
+                    k.score = Math.max(0, Math.min(100, Math.round(100 - .2 * k.cong - .12 * k.aqi - 60 * (E.demand ? E.deficit / E.demand : 0) - (wp < 30 ? (30 - wp) * .6 : 0) - k.inc * 3)));
+                    return k
+                };
+                const ROWS = [
+                    ['cong', 'Congestion %', -1, 0],
+                    ['deficit', 'Power deficit MW', -1, 1],
+                    ['renew', 'Renewable %', 1, 0],
+                    ['water', 'Reservoir %', 1, 0],
+                    ['aqi', 'AQI', -1, 0],
+                    ['inc', 'Active incidents', -1, 0],
+                    ['score', 'City score', 1, 0]
+                ];
+                const SCN = [{
+                    id: 'rush',
+                    n: '🚗 Rush-hour gridlock',
+                    d: 'Traffic ×2.2 with higher emissions',
+                    a(m) {
+                        m.traffic = 2.2;
+                        m.pol = 1.3
+                    }
+                }, {
+                    id: 'heat',
+                    n: '🔥 Heatwave',
+                    d: 'Power ×1.35, water ×1.3, stronger sun',
+                    a(m) {
+                        m.demand = 1.35;
+                        m.water = 1.3;
+                        m.solar = 1.1;
+                        m.pol = 1.15
+                    }
+                }, {
+                    id: 'green',
+                    n: '🌱 Green transition',
+                    d: '+30% solar, 30% less traffic, 12 trees',
+                    a(m) {
+                        m.solar = 1.3;
+                        m.traffic = .7;
+                        m.pol = .7;
+                        CV.cfg.trees += 12
+                    },
+                    r() {
+                        CV.cfg.trees -= 12
+                    }
+                }, {
+                    id: 'flood',
+                    n: '🌊 Major flood',
+                    d: 'Heavy rain, flooded streets, an accident',
+                    a(m) {
+                        m.rain = 1.8;
+                        CV.Emergency.create('flood', ...rnd(M.roads), 3);
+                        CV.Emergency.create('flood', ...rnd(M.roads), 2);
+                        CV.Emergency.create('accident', ...rnd(M.roads), 2)
+                    }
+                }, {
+                    id: 'ind',
+                    n: '🏭 Industrial shutdown',
+                    d: 'All factories go offline',
+                    a(m) {
+                        m.ind = 0
+                    }
+                }, {
+                    id: 'burst',
+                    n: '💧 Water main burst',
+                    d: 'Three simultaneous leaks',
+                    a(m) {
+                        m.water = 1.1;
+                        for (let k = 0; k < 3; k++) CV.Water.addLeak(...rnd(M.roads))
+                    }
+                }, {
+                    id: 'black',
+                    n: '🌑 Grid failure',
+                    d: 'Two districts lose power',
+                    a() {
+                        CV.Energy.setOutage(0, true);
+                        CV.Energy.setOutage(1, true)
+                    },
+                    r() {
+                        CV.Energy.setOutage(0, false);
+                        CV.Energy.setOutage(1, false)
+                    }
+                }];
+                const S0 = () => ({
+                    demand: 1,
+                    solar: 1,
+                    traffic: 1,
+                    pol: 1,
+                    water: 1,
+                    rain: 1,
+                    ind: 1
+                });
+                const Sim = CV.Sim = {
+                        raf: 0,
+                        acc: 0,
+                        last: 0,
+                        newState() {
+                            CV.State = {
+                                t: CV.saved.t || 480,
+                                running: false,
+                                mods: S0(),
+                                scen: null,
+                                alerts: [],
+                                ak: {},
+                                pop0: M.tiles.reduce((a, t) => a + t.pop, 0),
+                                pop: 0
+                            };
+                            this.pop()
+                        },
+                        pop() {
+                            const S = CV.State;
+                            S.pop = Math.round(S.pop0 * (1 + S.t / 1440 * .0015))
+                        },
+                        init() {
+                            this.newState();
+                            CV.Traffic.init();
+                            CV.Energy.init();
+                            CV.Water.init();
+                            CV.Emergency.init();
+                            CV.Analytics.init();
+                            CV.Env.init();
+                            CV.Traffic.step();
+                            CV.Energy.step(true);
+                            this.btn()
+                        },
+                        btn() {
+                            $('bPlay').textContent = CV.State.running ? '⏸ Pause' : '▶ Start';
+                            $('bPlay').classList.toggle('on', CV.State.running);
+                            $('speed').value = CV.cfg.speed
+                        },
+                        start() {
+                            if (CV.State.running) return;
+                            CV.State.running = true;
+                            this.last = performance.now();
+                            this.acc = 0;
+                            this.raf = requestAnimationFrame(t => this.loop(t));
+                            this.btn()
+                        },
+                        pause() {
+                            CV.State.running = false;
+                            cancelAnimationFrame(this.raf);
+                            this.btn();
+                            CV.save()
+                        },
+                        toggle() {
+                            CV.State.running ? this.pause() : this.start()
+                        },
+                        reset() {
+                            this.pause();
+                            CV.saved = {
+                                cfg: CV.cfg
+                            };
+                            CV.lastScen = null;
+                            this.init();
+                            M.sel = null;
+                            $('insp').hidden = true;
+                            CV.save();
+                            CV.App.refresh();
+                            M.draw();
+                            CV.toast('Simulation reset')
+                        },
+                        setSpeed(v) {
+                            CV.cfg.speed = +v;
+                            CV.save();
+                            this.btn()
+                        },
+                        loop(ts) {
+                            if (!CV.State.running) return;
+                            const rd = Math.max(0, Math.min(.1, (ts - this.last) / 1000)),
+                                sp = CV.cfg.speed;
+                            this.last = ts;
+                            CV.Traffic.move(Math.min(.12, rd * sp));
+                            this.acc += rd * sp;
+                            let n = 0;
+                            while (this.acc >= .5 && n++ < 6) {
+                                this.acc -= .5;
+                                this.step()
+                            }
+                            if (n >= 6) this.acc = 0;
+                            M.draw();
+                            this.raf = requestAnimationFrame(t => this.loop(t))
+                        },
+                        step() {
+                            const S = CV.State;
+                            S.t += 5;
+                            this.pop();
+                            CV.Traffic.step();
+                            CV.Energy.step();
+                            CV.Water.step();
+                            CV.Env.step();
+                            CV.Emergency.step();
+                            this.random();
+                            this.scen();
+                            CV.Analytics.sample();
+                            if (S.t % 60 == 0) CV.save();
+                            CV.App.refresh()
+                        },
+                        random() {
+                            if (!CV.cfg.random || Math.random() > .02) return;
+                            const r = Math.random(),
+                                E = CV.Energy;
+                            if (r < .35) CV.Water.addLeak(...rnd(M.roads));
+                            else if (r < .6) {
+                                if (!E.out.some(x => x)) E.setOutage(Math.random() * 4 | 0, true, true)
+                            } else {
+                                const ty = rnd(['fire', 'accident', 'medical', 'flood']),
+                                    t = rnd(M.tiles);
+                                CV.Emergency.create(ty, t.i, t.j)
+                            }
+                        },
+                        run(id) {
+                            const S = CV.State;
+                            if (S.scen) {
+                                CV.toast('A scenario is already running');
+                                return
+                            }
+                            const sc = SCN.find(x => x.id == id),
+                                before = CV.kpis();
+                            sc.a(S.mods);
+                            S.scen = {
+                                sc,
+                                left: 48,
+                                total: 48,
+                                before,
+                                sum: {},
+                                n: 0
+                            };
+                            CV.alert('info', 'Scenario started: ' + sc.n);
+                            this.start();
+                            CV.App.show('scenario')
+                        },
+                        stop() {
+                            const S = CV.State;
+                            if (!S.scen) return;
+                            this.fin(true)
+                        },
+                        scen() {
+                            const s = CV.State.scen;
+                            if (!s) return;
+                            const k = CV.kpis();
+                            for (const x in k) s.sum[x] = (s.sum[x] || 0) + k[x];
+                            s.n++;
+                            if (--s.left <= 0) this.fin()
+                        },
+                        fin(abort) {
+                            const S = CV.State,
+                                s = S.scen,
+                                after = {};
+                            for (const x in s.sum) after[x] = s.sum[x] / Math.max(1, s.n);
+                            if (!s.n) Object.assign(after, CV.kpis());
+                            S.mods = S0();
+                            s.sc.r && s.sc.r();
+                            S.scen = null;
+                            CV.lastScen = {
+                                name: s.sc.n,
+                                before: s.before,
+                                after,
+                                impact: Math.round(after.score - s.before.score),
+                                abort: !!abort
+                            };
+                            CV.alert('ok', 'Scenario finished: ' + s.sc.n);
+                            CV.save();
+                            CV.App.refresh()
+                        },
+                        panel(el) {
+                            el.innerHTML = `<h3>🧪 Scenario Simulator</h3><div class="card"><div class="row2"><small>Simulation</small><div class="seg"><button class="btn" id="sc-go">▶ Start / pause</button><button class="btn" id="sc-rs">↺ Reset</button></div></div><small>Each scenario runs for 4 simulated hours, then compares before and after.</small></div><div id="sc-st"></div>${SCN.map(s=>`<div class="card"><div class="row2"><b>${s.n}</b><button class="btn" data-s="${s.id}">Run</button></div><small>${s.d}</small></div>`).join('')}<div id="sc-res"></div>`;
+$('sc-go').onclick=()=>this.toggle();$('sc-rs').onclick=()=>this.reset();el.onclick=e=>{const id=e.target.dataset.s;if(id)this.run(id);if(e.target.id=='sc-stop')this.stop()}},
+refresh(){if(!$('sc-st'))return;const s=CV.State.scen;$('sc-st').innerHTML=s?`<div class="card"><div class="row2"><b>Running: ${s.sc.n}</b><button class="btn" id="sc-stop">Stop</button></div><div class="bar"><i style="width:${100*(s.total-s.left)/s.total}%"></i></div></div>`:'';
+const r=CV.lastScen;$('sc-res').innerHTML=r?`<div class="card"><b>Last result: ${r.name}</b>${r.abort?' <small>(stopped early)</small>':''}<div class="row2"><small>Impact score</small><b class="big ${r.impact<0?'bad':'ok'}">${r.impact>0?'+':''}${r.impact}</b></div><table><tr><th></th><th>Before</th><th>After</th><th>Δ</th></tr>${ROWS.map(([k,l,d,f])=>{const a=r.before[k],b=r.after[k],x=b-a,c=Math.abs(x)<.05?'':(x*d>0?'ok':'bad');return`<tr><td>${l}</td><td>${a.toFixed(f?1:0)}</td><td>${b.toFixed(f?1:0)}</td><td class="${c}">${x>0?'+':''}${x.toFixed(f?1:0)}</td></tr>`}).join('')}</table></div>`:'<div class="empty">No scenario run yet. Pick one above to compare before and after.</div>'}};
+})();
+    </script>
+    <script>
+        (function() {
+            const CV = window.CV;
+            const NAV = [
+                ['overview', '🏙️', 'Overview'],
+                ['traffic', '🚦', 'Traffic'],
+                ['energy', '⚡', 'Energy'],
+                ['water', '💧', 'Water'],
+                ['env', '🌿', 'Environment'],
+                ['emergency', '🚨', 'Emergency'],
+                ['analytics', '📊', 'Analytics'],
+                ['scenario', '🧪', 'Scenarios'],
+                ['settings', '⚙️', 'Settings']
+            ];
+            let cur = 'overview',
+                MODS = {};
+            const lv = (v, a, b) => v > b ? 'bad' : v > a ? 'warn' : 'ok';
+            CV.toast = m => {
+                const t = $('toast');
+                t.textContent = m;
+                t.classList.add('show');
+                clearTimeout(CV._tt);
+                CV._tt = setTimeout(() => t.classList.remove('show'), 2400)
+            };
+            const dl = (name, txt, type) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([txt], {
+                    type
+                }));
+                a.download = name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 500)
+            };
+            CV.Overview = {
+                panel(el) {
+                    el.innerHTML = `<h3>🏙️ City Overview</h3><div class="card" style="display:flex;gap:12px;align-items:center"><svg viewBox="0 0 100 100" width="104" height="104"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(120,160,220,.25)" stroke-width="9"/><circle id="ov-ring" cx="50" cy="50" r="42" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="264" transform="rotate(-90 50 50)"/><text id="ov-sc" x="50" y="58" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor">0</text></svg><div><b>City health score</b><br><small id="ov-pop"></small><br><small>Score blends traffic, air, power, water and incidents.</small></div></div>
+<div class="card"><div class="row2"><b>Alerts</b><button class="btn" id="ov-clr">Clear</button></div><div id="ov-al"></div></div>
+<div class="card"><b>Getting started</b><br><small>Press ▶ Start. Click any building or road to inspect it. Use the layer buttons on the map for traffic, pollution, power and water views. Drag to pan, scroll or pinch to zoom.</small></div>`;
+                    $('ov-clr').onclick = () => {
+                        CV.State.alerts = [];
+                        CV.App.refresh()
+                    }
+                },
+                refresh() {
+                    if (!$('ov-sc')) return;
+                    const k = CV.kpis(),
+                        c = k.score > 70 ? 'var(--ok)' : k.score > 45 ? 'var(--warn)' : 'var(--bad)',
+                        r = $('ov-ring');
+                    r.style.stroke = c;
+                    r.setAttribute('stroke-dashoffset', 264 * (1 - k.score / 100));
+                    $('ov-sc').textContent = k.score;
+                    $('ov-pop').textContent = 'Population ' + CV.State.pop.toLocaleString();
+                    $('ov-al').innerHTML = CV.State.alerts.length ? CV.State.alerts.slice(0, 8).map(a => `<div class="al ${a.l}"><small>${a.c}</small>${a.m}</div>`).join('') : '<div class="empty">✅ All systems nominal. No alerts.</div>'
+                }
+            };
+            CV.Settings = {
+                panel(el) {
+                    const c = CV.cfg;
+                    el.innerHTML = `<h3>⚙️ Settings</h3><div class="card"><label>Theme<br><select id="st-th"><option value="dark">Midnight (dark)</option><option value="ocean">Ocean teal</option><option value="light">Daylight</option></select></label><label>Default simulation speed<br><select id="st-sp"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+<label><input type="checkbox" id="st-rn"> Random incidents (leaks, outages, emergencies)</label><label><input type="checkbox" id="st-ad"> Auto-dispatch emergency units</label><label><input type="checkbox" id="st-vh"> Show vehicles on map</label></div>
+<div class="card"><small>Data</small><div class="seg"><button class="btn" id="st-ej">⬇ Export JSON</button><button class="btn" id="st-ec">⬇ Export analytics CSV</button></div><div class="seg"><button class="btn" id="st-tr">🎓 Replay tour</button><label class="btn" style="margin:0">⬆ Import JSON<input type="file" id="st-im" accept=".json" hidden></label></div><small>Shortcuts: Space start/pause · +/− zoom · L cycle layers · 1–9 open modules · Esc cancel</small><div class="seg"><button class="btn" id="st-rs">↺ Reset simulation</button><button class="btn" id="st-ra">🗑 Reset everything</button></div><small>Settings are saved in your browser's LocalStorage. Everything runs locally.</small></div>`;
+                    $('st-th').value = c.theme;
+                    $('st-sp').value = c.speed;
+                    $('st-rn').checked = c.random;
+                    $('st-ad').checked = c.autoDispatch;
+                    $('st-vh').checked = c.showVehicles;
+                    $('st-th').onchange = e => {
+                        c.theme = e.target.value;
+                        document.documentElement.dataset.theme = c.theme;
+                        CV.Map.themeChanged();
+                        CV.save()
+                    };
+                    $('st-sp').onchange = e => CV.Sim.setSpeed(e.target.value);
+                    $('st-rn').onchange = e => {
+                        c.random = e.target.checked;
+                        CV.save()
+                    };
+                    $('st-ad').onchange = e => {
+                        c.autoDispatch = e.target.checked;
+                        CV.save()
+                    };
+                    $('st-vh').onchange = e => {
+                        c.showVehicles = e.target.checked;
+                        CV.save();
+                        CV.Map.invalidate()
+                    };
+                    $('st-ej').onclick = () => dl('cityverse-export.json', JSON.stringify({
+                        exported: new Date().toISOString(),
+                        clock: CV.clock(),
+                        cfg: c,
+                        kpis: CV.kpis(),
+                        population: CV.State.pop,
+                        closedRoads: [...CV.Traffic.closed],
+                        incidents: CV.Emergency.incidents,
+                        leaks: CV.Water.leaks,
+                        alerts: CV.State.alerts,
+                        analytics: CV.Analytics.hist
+                    }, null, 2), 'application/json');
+                    $('st-ec').onclick = () => {
+                        const K = ['pop', 'cong', 'dem', 'eff', 'aqi'],
+                            rows = [
+                                ['period', 'index', ...K].join(',')
+                            ];
+                        CV.Analytics.hist.h.forEach((x, i) => rows.push(['hourly', i, ...K.map(k => x[k].toFixed(2))].join(',')));
+                        CV.Analytics.hist.d.forEach((x, i) => rows.push(['daily', i, ...K.map(k => x[k].toFixed(2))].join(',')));
+                        dl('cityverse-analytics.csv', rows.join('\n'), 'text/csv')
+                    };
+                    $('st-rs').onclick = () => CV.Sim.reset();
+                    $('st-tr').onclick = () => CV.tour();
+                    $('st-im').onchange = e => {
+                        const f = e.target.files[0];
+                        if (!f) return;
+                        f.text().then(t => {
+                            try {
+                                const o = JSON.parse(t);
+                                if (!o.cfg) throw 0;
+                                Object.assign(CV.cfg, o.cfg);
+                                CV.save();
+                                location.reload()
+                            } catch (x) {
+                                CV.toast('Not a valid CityVerse export')
+                            }
+                        })
+                    };
+                    $('st-ra').onclick = () => {
+                        if (confirm('Delete all saved settings and data, then reload?')) {
+                            CV.Storage.clear();
+                            location.reload()
+                        }
+                    }
+                },
+                refresh() {}
+            };
+            const App = CV.App = {
+                show(id) {
+                    cur = id;
+                    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id == 'p-' + id));
+                    document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.m == id));
+                    if (innerWidth <= 900) {
+                        document.body.classList.remove('navopen');
+                        document.body.classList.add('panelopen')
+                    } else document.body.classList.remove('pcol');
+                    this.refresh()
+                },
+                refresh() {
+                    $('clock').textContent = CV.clock();
+                    this.kpi();
+                    const m = MODS[cur];
+                    m && m.refresh();
+                    if (cur != 'overview') CV.Overview.refresh();
+                    if (!CV.State.running) CV.Map.invalidate()
+                },
+                kpi() {
+                    const S = CV.State,
+                        E = CV.Energy,
+                        wp = Math.round(100 * CV.Water.level / CV.Water.CAP),
+                        n = S.alerts.filter(a => S.t - a.t < 180).length,
+                        aq = CV.Env.aqi;
+                    const k = [
+                        ['overview', '👥 Population', S.pop.toLocaleString(), ''],
+                        ['traffic', '🚦 Traffic', Math.round(CV.Traffic.cong) + '%', lv(CV.Traffic.cong, 40, 70)],
+                        ['energy', '⚡ Energy', E.demand.toFixed(0) + ' / ' + (E.solar + E.conv).toFixed(0) + ' MW', E.deficit > .5 ? 'bad' : 'ok'],
+                        ['water', '💧 Water', wp + '%', wp < 20 ? 'bad' : wp < 40 ? 'warn' : 'ok'],
+                        ['env', '🌫️ AQI', aq, lv(aq, 100, 150)],
+                        ['emergency', '🚨 Alerts', n, n > 3 ? 'bad' : n ? 'warn' : 'ok']
+                    ];
+                    $('kpis').innerHTML = k.map(x => `<button class="kpi ${x[3]}" data-m="${x[0]}"><small>${x[1]}</small><b>${x[2]}</b></button>`).join('')
+                },
+                place(m, i, j) {
+                    const C = CV;
+                    if (m == 'close') {
+                        if (!C.Traffic.toggleClosure(i, j)) C.toast('Select a road tile');
+                        return true
+                    }
+                    if (m == 'leak') {
+                        C.Water.addLeak(i, j);
+                        return false
+                    }
+                    if (m.startsWith('inc:')) {
+                        C.Emergency.create(m.slice(4), i, j);
+                        return false
+                    }
+                    return false
+                },
+                inspect(i, j) {
+                    const M = CV.Map,
+                        t = M.grid[j][i],
+                        k = i + ',' + j;
+                    M.sel = {
+                        i,
+                        j
+                    };
+                    let h;
+                    if (t) {
+                        h = `<b>${t.name}</b> <small>${t.type}</small><div class="kv">District: ${M.SEC[t.sector]}<br>Status: ${t.outage?'<span class=bad>Power outage</span>':'<span class=ok>Operational</span>'}<br>Power use: ${t.outage?0:(t.mw*CV.curve.dem(CV.hour())).toFixed(2)} MW${t.pop?'<br>Residents: '+t.pop.toLocaleString():''}<br>Local air index: ${Math.round(20+330*CV.Env.pol[j][i])}</div><div class="seg"><button class="btn" data-a="fire">🔥 Fire</button><button class="btn" data-a="med">🚑 Medical</button><button class="btn" data-a="out">⚡ ${t.outage?'Restore':'Cut'} power</button></div>`
+                    } else {
+                        const it = i % 3 == 0 && j % 3 == 0,
+                            cl = CV.Traffic.closed.has(k);
+                        h = `<b>${it?'Intersection':'Road'} (${i},${j})</b><div class="kv">Vehicles: ${(CV.Traffic.dens[k]||0).toFixed(1)}<br>Status: ${cl?'<span class=bad>Closed</span>':'<span class=ok>Open</span>'}${it?'<br>Signal: '+(CV.Traffic.sigAt(i,j)=='ns'?'North–South green':'East–West green'):''}</div><div class="seg"><button class="btn" data-a="close">${cl?'Reopen':'🚧 Close'}</button><button class="btn" data-a="leak">💧 Leak</button><button class="btn" data-a="acc">🚗 Accident</button></div>${it?'<div class="seg"><button class="btn" data-a="sns">N–S green</button><button class="btn" data-a="sew">E–W green</button><button class="btn" data-a="sau">Auto</button></div>':''}`
+                    }
+                    const p = $('insp');
+                    p.innerHTML = '<div class="row2" style="float:right"><button class="ib" data-a="x">×</button></div>' + h;
+                    p.hidden = false;
+                    M.invalidate()
+                }
+            };
+
+            function inspAct(e) {
+                const a = e.target.dataset.a;
+                if (!a) return;
+                const M = CV.Map,
+                    s = M.sel;
+                if (a == 'x') {
+                    M.sel = null;
+                    $('insp').hidden = true;
+                    M.invalidate();
+                    return
+                }
+                if (!s) return;
+                const {
+                    i,
+                    j
+                } = s, t = M.grid[j][i], T = CV.Traffic;
+                if (a == 'fire') CV.Emergency.create('fire', i, j);
+                else if (a == 'med') CV.Emergency.create('medical', i, j);
+                else if (a == 'out') CV.Energy.setOutage(t.sector, !CV.Energy.out[t.sector]);
+                else if (a == 'close') T.toggleClosure(i, j);
+                else if (a == 'leak') CV.Water.addLeak(i, j);
+                else if (a == 'acc') CV.Emergency.create('accident', i, j);
+                else if (a == 'sns' || a == 'sew' || a == 'sau') {
+                    T.over[i + ',' + j] = a == 'sns' ? 'ns' : a == 'sew' ? 'ew' : 'auto';
+                    CV.toast('Signal updated')
+                }
+                CV.App.inspect(i, j);
+                CV.App.refresh()
+            }
+            CV.tour = () => {
+                const S = [
+                    ['Welcome to CityVerse', 'A living digital twin of a smart city. Everything is simulated locally in your browser.'],
+                    ['Explore the map', 'Drag to pan, scroll or pinch to zoom. Click any building or road to inspect it and trigger events.'],
+                    ['Control the city', 'Use the menu for traffic, energy, water, environment, emergencies, analytics and scenarios. Press Start or Space to run time.']
+                ];
+                let k = 0;
+                const o = document.createElement('div');
+                o.id = 'tour';
+                document.body.appendChild(o);
+                const end = () => {
+                        o.remove();
+                        CV.cfg.seen = 1;
+                        CV.save()
+                    },
+                    r = () => {
+                        o.innerHTML = `<div class="tc"><h3>${S[k][0]}</h3><p>${S[k][1]}</p><div class="row2"><small>${k+1} / ${S.length}</small><span class="seg"><button class="btn" id="t-s">Skip</button><button class="btn on" id="t-n">${k<2?'Next':'Start exploring'}</button></span></div></div>`;
+                        $('t-s').onclick = end;
+                        $('t-n').onclick = () => ++k < S.length ? r() : end()
+                    };
+                r()
+            };
+            window.addEventListener('DOMContentLoaded', () => {
+                document.documentElement.dataset.theme = CV.cfg.theme;
+                const P = $('panes'),
+                    nv = $('nav');
+                NAV.forEach(([id, ic, lb]) => {
+                    const s = document.createElement('section');
+                    s.className = 'pane';
+                    s.id = 'p-' + id;
+                    P.appendChild(s);
+                    const b = document.createElement('button');
+                    b.dataset.m = id;
+                    b.textContent = ic + ' ' + lb;
+                    nv.appendChild(b)
+                });
+                MODS = {
+                    overview: CV.Overview,
+                    traffic: CV.Traffic,
+                    energy: CV.Energy,
+                    water: CV.Water,
+                    env: CV.Env,
+                    emergency: CV.Emergency,
+                    analytics: CV.Analytics,
+                    scenario: CV.Sim,
+                    settings: CV.Settings
+                };
+                CV.Sim.init();
+                for (const id in MODS) MODS[id].panel($('p-' + id));
+                nv.onclick = e => {
+                    if (e.target.dataset.m) App.show(e.target.dataset.m)
+                };
+                $('kpis').onclick = e => {
+                    const b = e.target.closest('.kpi');
+                    if (b) App.show(b.dataset.m)
+                };
+                $('insp').onclick = inspAct;
+                $('bPlay').onclick = () => CV.Sim.toggle();
+                $('bReset').onclick = () => CV.Sim.reset();
+                $('speed').onchange = e => CV.Sim.setSpeed(e.target.value);
+                $('bNav').onclick = () => {
+                    document.body.classList.remove('panelopen');
+                    document.body.classList.toggle('navopen')
+                };
+                $('bPanel').onclick = () => {
+                    if (innerWidth <= 900) {
+                        document.body.classList.remove('navopen');
+                        document.body.classList.toggle('panelopen')
+                    } else document.body.classList.toggle('pcol')
+                };
+                $('pClose').onclick = () => document.body.classList.remove('panelopen');
+                $('scrim').onclick = () => document.body.classList.remove('navopen', 'panelopen');
+                $('ctlTog').onclick = () => document.body.classList.toggle('ctlopen');
+                document.addEventListener('keydown', e => {
+                    if (e.key == 'Escape') CV.Map.setMode(null);
+                    const k = e.key;
+                    if (!/INPUT|SELECT/.test(e.target.tagName)) {
+                        if (k == '+' || k == '=') CV.Map.zoom(1.25);
+                        if (k == '-') CV.Map.zoom(.8);
+                        if (k == 'l' || k == 'L') {
+                            const L = ['city', 'traffic', 'pollution', 'power', 'water'];
+                            CV.Map.setLayer(L[(L.indexOf(CV.Map.layer) + 1) % 5])
+                        }
+                        if (k >= '1' && k <= '9') App.show(NAV[k - 1][0])
+                    }
+                    if (e.code == 'Space' && !/INPUT|SELECT|BUTTON/.test(e.target.tagName)) {
+                        e.preventDefault();
+                        CV.Sim.toggle()
+                    }
+                });
+                $('zf').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+                CV.Map.init();
+                App.show('overview');
+                if (!CV.cfg.seen) CV.tour();
+                if (innerWidth <= 900) document.body.classList.remove('panelopen');
+                CV.Sim.btn()
+            });
+        })();
+    </script>
+</body>
+
+</html>
